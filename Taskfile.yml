@@ -1,0 +1,12 @@
+version: 3
+
+tasks:
+  build:
+    desc: "Build the project"
+    cmds:
+      - go build -v -i main.go
+
+  generate:
+    desc: "Generate the project"
+    cmds:
+      - docker-compose run --rm swagger-gen

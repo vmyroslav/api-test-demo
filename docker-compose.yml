@@ -1,0 +1,36 @@
+services:
+  hoverfly:
+    image: spectolabs/hoverfly:v2.0.0
+    ports:
+      - "8500:8500"   # Proxy port
+      - "8888:8888"   # Admin API port
+    command: [-webserver]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/v2/hoverfly"]
+      interval: 1s
+      timeout: 3s
+      retries: 60
+
+  swagger-gen:
+    build:
+      context: .
+      dockerfile: ./docker/swagger.Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: ["swagger", "generate", "client", "-f", "swagger.json", "-t", "client"]
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile.swagger.test
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - HTTP_PROXY=http://hoverfly:8500
+      - HTTPS_PROXY=http://hoverfly:8500
+      - CAPTURE_MODE=${CAPTURE_MODE:-false}
+    depends_on:
+      hoverfly:
+        condition: service_healthy
