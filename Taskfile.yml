@@ -9,4 +9,9 @@ tasks:
   generate:
     desc: "Generate the project"
     cmds:
-      - docker-compose run --rm swagger-gen
+      - docker-compose run --rm oapi-generator
+
+  generate-openapi:
+    desc: "Generate the openapi"
+    cmds:
+      - docker-compose run --rm openapi-generator
