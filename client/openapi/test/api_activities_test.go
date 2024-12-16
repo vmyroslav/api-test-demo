@@ -11,7 +11,7 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/GIT_USER_I
+	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -20,11 +20,13 @@ import (
 func Test_openapi_ActivitiesAPIService(t *testing.T) {
 
 	configuration := openapiclient.NewConfiguration()
+	configuration.Host = "fakerestapi.azurewebsites.net"
+	configuration.Scheme = "https"
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.ActivitiesAPI.ApiV1ActivitiesGet(context.Background()).Execute()
 
@@ -49,15 +51,16 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesIdGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
-		var id int32
+		var id int32 = 1
 
 		resp, httpRes, err := apiClient.ActivitiesAPI.ApiV1ActivitiesIdGet(context.Background(), id).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
+		assert.Equal(t, id, *resp.Id)
 
 	})
 
