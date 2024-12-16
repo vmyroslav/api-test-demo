@@ -24,7 +24,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosBooksCoversIdBookGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var idBook int32
 
@@ -38,7 +38,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.CoverPhotosAPI.ApiV1CoverPhotosGet(context.Background()).Execute()
 
@@ -50,7 +50,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdDelete", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -63,7 +63,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -77,7 +77,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdPut", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -91,7 +91,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosPost", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.CoverPhotosAPI.ApiV1CoverPhotosPost(context.Background()).Execute()
 

@@ -24,7 +24,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsAuthorsBooksIdBookGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var idBook int32
 
@@ -38,7 +38,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsGet(context.Background()).Execute()
 
@@ -50,7 +50,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdDelete", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -63,7 +63,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -77,7 +77,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdPut", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -91,7 +91,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsPost", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsPost(context.Background()).Execute()
 

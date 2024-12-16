@@ -24,7 +24,7 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 	t.Run("Test BooksAPIService ApiV1BooksGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.BooksAPI.ApiV1BooksGet(context.Background()).Execute()
 
@@ -36,7 +36,7 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 	t.Run("Test BooksAPIService ApiV1BooksIdDelete", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -49,7 +49,7 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 	t.Run("Test BooksAPIService ApiV1BooksIdGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -63,7 +63,7 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 	t.Run("Test BooksAPIService ApiV1BooksIdPut", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -76,7 +76,7 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 	t.Run("Test BooksAPIService ApiV1BooksPost", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		httpRes, err := apiClient.BooksAPI.ApiV1BooksPost(context.Background()).Execute()
 
