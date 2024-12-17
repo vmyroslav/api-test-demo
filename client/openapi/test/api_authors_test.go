@@ -22,6 +22,9 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
+	configuration.Host = "fakerestapi.azurewebsites.net"
+	configuration.Scheme = "https"
+
 	t.Run("Test AuthorsAPIService ApiV1AuthorsAuthorsBooksIdBookGet", func(t *testing.T) {
 
 		//t.Skip("skip test") // remove to run test
@@ -34,6 +37,14 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
 
+		if idBook == 0 {
+			assert.Empty(t, resp)
+		} else {
+			assert.NotEmpty(t, resp)
+			for _, author := range resp {
+				assert.Equal(t, int32(21), author.GetIdBook())
+			}
+		}
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsGet", func(t *testing.T) {
@@ -46,6 +57,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
 
+		assert.Greater(t, len(resp), 0)
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdDelete", func(t *testing.T) {
@@ -69,10 +81,19 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsIdGet(context.Background(), id).Execute()
 
-		require.Nil(t, err)
-		require.NotNil(t, resp)
-		assert.Equal(t, 200, httpRes.StatusCode)
+		if id == 0 {
+			assert.Error(t, err)
+			assert.Empty(t, resp)
+			assert.Equal(t, 404, httpRes.StatusCode)
+		} else {
+			require.Nil(t, err)
+			require.NotNil(t, resp)
+			assert.Equal(t, 200, httpRes.StatusCode)
 
+			assert.Equal(t, int32(21), resp.GetId())
+			assert.Equal(t, "First Name 21", resp.GetFirstName())
+			assert.Equal(t, "Last Name 21", resp.GetLastName())
+		}
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdPut", func(t *testing.T) {
@@ -81,23 +102,49 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 		var id int32
 
-		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsIdPut(context.Background(), id).Execute()
+		var author = openapiclient.Author{
+			Id:        openapiclient.PtrInt32(-1),
+			IdBook:    openapiclient.PtrInt32(0),
+			FirstName: *openapiclient.NewNullableString(openapiclient.PtrString("First Name")),
+			LastName:  *openapiclient.NewNullableString(openapiclient.PtrString("Last Name")),
+		}
+
+		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsIdPut(context.Background(), id).
+			Author(author).
+			Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
 
+		assert.Equal(t, int32(-1), resp.GetId())
+		assert.Equal(t, int32(0), resp.GetIdBook())
+		assert.Equal(t, "First Name", resp.GetFirstName())
+		assert.Equal(t, "Last Name", resp.GetLastName())
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsPost", func(t *testing.T) {
 
 		//t.Skip("skip test") // remove to run test
+		var author = openapiclient.Author{
+			Id:        openapiclient.PtrInt32(-1),
+			IdBook:    openapiclient.PtrInt32(0),
+			FirstName: *openapiclient.NewNullableString(openapiclient.PtrString("First Name")),
+			LastName:  *openapiclient.NewNullableString(openapiclient.PtrString("Last Name")),
+		}
 
-		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsPost(context.Background()).Execute()
+		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsPost(context.Background()).
+			Author(author).
+			Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
+
+		assert.Equal(t, int32(-1), resp.GetId())
+		assert.Equal(t, int32(0), resp.GetIdBook())
+		assert.Equal(t, "First Name", resp.GetFirstName())
+		assert.Equal(t, "Last Name", resp.GetLastName())
 
 	})
 
