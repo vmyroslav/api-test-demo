@@ -24,7 +24,7 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 
 	t.Run("Test UsersAPIService ApiV1UsersGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.UsersAPI.ApiV1UsersGet(context.Background()).Execute()
 
@@ -36,7 +36,7 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 
 	t.Run("Test UsersAPIService ApiV1UsersIdDelete", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -49,7 +49,7 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 
 	t.Run("Test UsersAPIService ApiV1UsersIdGet", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -62,7 +62,7 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 
 	t.Run("Test UsersAPIService ApiV1UsersIdPut", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -75,7 +75,7 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 
 	t.Run("Test UsersAPIService ApiV1UsersPost", func(t *testing.T) {
 
-		t.Skip("skip test") // remove to run test
+		//t.Skip("skip test") // remove to run test
 
 		httpRes, err := apiClient.UsersAPI.ApiV1UsersPost(context.Background()).Execute()
 
