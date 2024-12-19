@@ -15,11 +15,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func Test_openapi_BooksAPIService(t *testing.T) {
 
 	configuration := openapiclient.NewConfiguration()
+	configuration.Host = "fakerestapi.azurewebsites.net"
+	configuration.Scheme = "https"
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test BooksAPIService ApiV1BooksGet", func(t *testing.T) {
@@ -32,6 +35,8 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
 
+		assert.Equal(t, 200, len(resp))
+		assert.Equal(t, int32(100), resp[1].GetPageCount()-resp[0].GetPageCount())
 	})
 
 	t.Run("Test BooksAPIService ApiV1BooksIdDelete", func(t *testing.T) {
@@ -55,9 +60,17 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 		resp, httpRes, err := apiClient.BooksAPI.ApiV1BooksIdGet(context.Background(), id).Execute()
 
-		require.Nil(t, err)
-		require.NotNil(t, resp)
-		assert.Equal(t, 200, httpRes.StatusCode)
+		if id == 0 {
+			assert.Error(t, err)
+			assert.Equal(t, 404, httpRes.StatusCode)
+		} else {
+			require.Nil(t, err)
+			require.NotNil(t, resp)
+			assert.Equal(t, 200, httpRes.StatusCode)
+
+			assert.Equal(t, int32(1), resp.GetId())
+			assert.Equal(t, int32(1)*100, resp.GetPageCount())
+		}
 
 	})
 
@@ -67,7 +80,17 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 		var id int32
 
-		httpRes, err := apiClient.BooksAPI.ApiV1BooksIdPut(context.Background(), id).Execute()
+		var book = openapiclient.Book{
+			Id:          openapiclient.PtrInt32(id),
+			Title:       *openapiclient.NewNullableString(nil),
+			Description: *openapiclient.NewNullableString(nil),
+			PageCount:   openapiclient.PtrInt32(0),
+			Excerpt:     *openapiclient.NewNullableString(nil),
+			PublishDate: openapiclient.PtrTime(time.Now()),
+		}
+
+		httpRes, err := apiClient.BooksAPI.ApiV1BooksIdPut(context.Background(), id).
+			Book(book).Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
@@ -78,11 +101,20 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 
 		//t.Skip("skip test") // remove to run test
 
-		httpRes, err := apiClient.BooksAPI.ApiV1BooksPost(context.Background()).Execute()
+		var book = openapiclient.Book{
+			Id:          openapiclient.PtrInt32(1),
+			Title:       *openapiclient.NewNullableString(nil),
+			Description: *openapiclient.NewNullableString(nil),
+			PageCount:   openapiclient.PtrInt32(0),
+			Excerpt:     *openapiclient.NewNullableString(nil),
+			PublishDate: openapiclient.PtrTime(time.Now()),
+		}
+
+		httpRes, err := apiClient.BooksAPI.ApiV1BooksPost(context.Background()).
+			Book(book).Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 }
