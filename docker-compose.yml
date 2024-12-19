@@ -31,14 +31,28 @@ services:
   hoverfly:
     image: spectolabs/hoverfly:v1.6.0
     ports:
-      - "8500:8500"
-      - "8888:8888"
-    command: [-webserver]
+      - "8500:8500"  # Proxy port
+      - "8888:8888"  # Admin API port
+    volumes:
+      - ./testdata/hoverfly:/home/hoverfly/.hoverfly
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888/api/v2/hoverfly"]
       interval: 1s
       timeout: 3s
       retries: 60
+
+  hoverctl:
+    image: spectolabs/hoverfly:v1.6.0
+    entrypoint: ["hoverctl"]
+    environment:
+      - HOVERFLY_HOST=hoverfly
+      - HOVERFLY_ADMIN_PORT=8888
+      - HOVERFLY_PROXY_PORT=8500
+    volumes:
+      - ./testdata/hoverfly:/home/hoverfly/.hoverfly
+    depends_on:
+      hoverfly:
+        condition: service_healthy
 
   test:
     build:

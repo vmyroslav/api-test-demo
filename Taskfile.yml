@@ -1,5 +1,10 @@
 version: 3
 
+env:
+  TEST_CONTAINER: faker-api-test-demo-test
+  HOVERFLY_CONTAINER: faker-api-test-demo-hoverfly
+  SIMULATION_PATH: ./testdata/hoverfly/simulations
+
 tasks:
   build:
     desc: "Build the project"
@@ -15,3 +20,132 @@ tasks:
     desc: "Generate the openapi"
     cmds:
       - docker-compose run --rm openapi-generator
+
+  # Hoverfly Management
+  hoverfly:init:
+    desc: Initialize Hoverfly directory structure
+    cmds:
+      - mkdir -p ./testdata/hoverfly/simulations
+      - mkdir -p ./testdata/hoverfly/middleware
+
+  hoverfly:start:
+    desc: Start Hoverfly
+    cmds:
+      - docker compose up -d hoverfly
+      - task: hoverfly:wait
+
+  hoverfly:wait:
+    internal: true
+    cmds:
+      - |
+        docker compose run --rm hoverctl wait
+
+  hoverfly:stop:
+    desc: Stop Hoverfly
+    cmds:
+      - docker compose stop hoverfly
+      - docker compose rm -f hoverfly
+
+  hoverfly:clear:
+    desc: Clear Hoverfly simulations
+    cmds:
+#      - rm -rf ${SIMULATION_PATH}/*
+      - mkdir -p ${SIMULATION_PATH}
+
+  hoverfly:export:
+    desc: Export current simulation
+    cmds:
+      - docker compose run --rm hoverctl export ${SIMULATION_PATH}/{{.CLI_ARGS}}.json
+
+  hoverfly:import:
+    desc: Import simulation
+    cmds:
+      - docker compose run --rm hoverctl import ${SIMULATION_PATH}/{{.CLI_ARGS}}.json
+
+  hoverfly:mode:
+    desc: Set Hoverfly mode (capture/simulate/spy/modify)
+    cmds:
+      - docker compose run --rm hoverctl mode {{.CLI_ARGS}}
+
+  hoverfly:logs:
+    desc: Show Hoverfly logs
+    cmds:
+      - docker compose logs hoverfly
+
+  hoverfly:diff:
+    desc: Compare two simulations
+    cmds:
+      - docker compose run --rm hoverctl diff ${SIMULATION_PATH}/{{.CLI_ARGS}}
+
+  # Test Modes
+  test:local:
+    desc: Run tests locally against real API
+    cmds:
+      - go test -v ./...
+
+  test:local:proxy:
+    desc: Run tests locally through Hoverfly proxy
+    deps: [hoverfly:start]
+    env:
+      HTTP_PROXY: http://localhost:8500
+      HTTPS_PROXY: http://localhost:8500
+    cmds:
+      - task: hoverfly:mode -- simulate
+      - go test -v ./...
+
+  test:local:capture:
+    desc: Run tests locally in capture mode
+    deps: [hoverfly:start]
+    env:
+      HTTP_PROXY: http://localhost:8500
+      HTTPS_PROXY: http://localhost:8500
+    cmds:
+      - task: hoverfly:mode -- capture
+      - go test -v ./...
+      - task: hoverfly:export -- $(date +%Y%m%d_%H%M%S)
+
+  test:container:
+    desc: Run tests in container against real API
+    cmds:
+      - docker compose run --rm test go test -v ./...
+
+  test:container:proxy:
+    desc: Run tests in container through Hoverfly proxy
+    deps: [hoverfly:start]
+    cmds:
+      - task: hoverfly:mode -- simulate
+      - docker compose run --rm test go test -v ./...
+
+  test:container:capture:
+    desc: Run tests in container in capture mode
+    deps: [hoverfly:start]
+    env:
+      CAPTURE_MODE: "true"
+    cmds:
+      - task: hoverfly:mode -- capture
+      - docker compose run --rm test go test -v ./...
+      - task: hoverfly:export -- $(date +%Y%m%d_%H%M%S)
+
+  # Development Workflow Tasks
+  dev:setup:
+    desc: Initial setup of Hoverfly environment
+    cmds:
+      - task: hoverfly:init
+      - task: hoverfly:start
+
+  dev:capture:
+    desc: Clear existing stubs, start capture mode, and run tests
+    cmds:
+      - task: hoverfly:clear
+      - task: test:local:capture
+
+  dev:verify:
+    desc: Verify captured stubs work by running tests through proxy
+    cmds:
+      - task: test:local:proxy
+
+  dev:clean:
+    desc: Clean up all test artifacts and containers
+    cmds:
+      - task: hoverfly:stop
+      - task: hoverfly:clear

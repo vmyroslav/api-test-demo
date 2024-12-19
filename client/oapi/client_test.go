@@ -7,6 +7,7 @@ import (
 )
 
 const baseURL = "https://fakerestapi.azurewebsites.net"
+const baseURL2 = "http://localhost:8500"
 
 type testCase struct {
 	name     string
