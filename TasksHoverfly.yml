@@ -1,0 +1,68 @@
+version: 3
+
+# Hoverfly Management
+env:
+  COMPOSE_SERVICE_NAME: hoverfly
+  SIMULATION_PATH: ./testdata/hoverfly/
+
+tasks:
+  build:
+    desc: Build Hoverfly container
+    cmds:
+      - docker compose build {{.COMPOSE_SERVICE_NAME}}
+
+  start:
+    desc: Start Hoverfly container
+    cmds:
+      - docker compose up -d --wait {{.COMPOSE_SERVICE_NAME}}
+
+  stop:
+    desc: Stop Hoverfly
+    cmds:
+      - docker compose stop {{.COMPOSE_SERVICE_NAME}}
+
+  clear:
+    desc: Clear Hoverfly simulations
+    preconditions:
+      - sh: "[ ! -z '$SIMULATION_PATH' ]"
+        msg: "SIMULATION_PATH must be set"
+      - sh: "[ -d '$SIMULATION_PATH' ]"
+        msg: "SIMULATION_PATH must exist and be a directory"
+    cmds:
+      - find "${SIMULATION_PATH:?Must be set}" -name "*.json" -type f -delete
+    silent: true
+
+  export:
+    desc: Export current simulation
+    vars:
+      SIMULATION_PATH: '{{.SIMULATION_PATH | default "./testdata/hoverfly"}}'
+      SIMULATION_FILE: '{{.SIMULATION_FILE | default "simulation"}}'
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl export {{.SIMULATION_PATH}}/{{.SIMULATION_FILE}}.json
+
+  import:
+    desc: Import provided simulation
+    vars:
+      SIMULATION_PATH: '{{.SIMULATION_PATH | default "./testdata/hoverfly"}}'
+      SIMULATION_FILE: '{{.SIMULATION_FILE | default "simulation"}}'
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl import {{.SIMULATION_PATH}}/{{.SIMULATION_FILE}}.json
+
+  import-last:
+    desc: Import last simulation
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl import $(ls -t ${SIMULATION_PATH} | head -n 1)
+    internal: true
+
+  mode:
+    desc: Set Hoverfly mode (capture/simulate/spy/modify)
+    vars:
+      name: MODE
+      enum: [capture, simulate, spy, modify]
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl mode {{.MODE}}
+
+  logs:
+    desc: Show Hoverfly logs
+    cmds:
+      - docker compose logs {{.COMPOSE_SERVICE_NAME}}

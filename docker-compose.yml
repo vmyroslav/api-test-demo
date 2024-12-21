@@ -1,5 +1,6 @@
 services:
   oapi-generator:
+    container_name: oapi-generator
     build:
       context: .
       dockerfile: ./docker/oapi.Dockerfile
@@ -16,6 +17,7 @@ services:
       - "./api/test_api.json"
 
   openapi-generator:
+    container_name: openapi-generator
     build:
       context: .
       dockerfile: ./docker/openapi.Dockerfile
@@ -29,32 +31,32 @@ services:
       --additional-properties=packageName=openapi
 
   hoverfly:
-    image: spectolabs/hoverfly:v1.6.0
+    container_name: api-test-demo-hoverfly
+    build:
+      context: .
+      dockerfile: ./docker/hoverfly.Dockerfile
+      args:
+        - HOVERFLY_VERSION=1.10.6
+        - HOVERFLY_ADMIN_PORT=${HOVERFLY_ADMIN_PORT:-8888}
+        - HOVERFLY_PROXY_PORT=${HOVERFLY_PROXY_PORT:-8500}
+    #    environment:
+    ##        - HOVERFLY_MODE=capture
+    ##        - HOVERFLY_CAPTURE_PATH=/home/hoverfly/.hoverfly/simulations
+    #        - ProxyPort=8500
+    #        - AdminPort=8888
     ports:
-      - "8500:8500"  # Proxy port
-      - "8888:8888"  # Admin API port
+      - "${HOVERFLY_HOST_ADMIN_PORT:-8888}:${HOVERFLY_ADMIN_PORT:-8888}"
+      - "${HOVERFLY_HOST_PROXY_PORT:-8500}:${HOVERFLY_PROXY_PORT:-8500}"
     volumes:
-      - ./testdata/hoverfly:/home/hoverfly/.hoverfly
+      - ./testdata/hoverfly:/testdata/hoverfly
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/api/v2/hoverfly"]
+      test: ["CMD", "curl", "-f", "http://localhost:8888/api/health"]
       interval: 1s
       timeout: 3s
       retries: 60
 
-  hoverctl:
-    image: spectolabs/hoverfly:v1.6.0
-    entrypoint: ["hoverctl"]
-    environment:
-      - HOVERFLY_HOST=hoverfly
-      - HOVERFLY_ADMIN_PORT=8888
-      - HOVERFLY_PROXY_PORT=8500
-    volumes:
-      - ./testdata/hoverfly:/home/hoverfly/.hoverfly
-    depends_on:
-      hoverfly:
-        condition: service_healthy
-
   test:
+    container_name: api-test-demo-testing
     build:
       context: .
       dockerfile: Dockerfile.test

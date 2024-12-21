@@ -4,10 +4,16 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/url"
+	"testing"
 )
 
-func NewHttpClient() *http.Client {
-	//os.Setenv("HTTP_PROXY", "localhost:8500")
+func NewHttpClient(t testing.TB) *http.Client {
+	t.Helper()
+
+	//if os.Getenv("HTTP_PROXY") == "" {
+	//	return http.DefaultClient
+	//}
+
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(&url.URL{

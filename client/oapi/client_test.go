@@ -15,7 +15,7 @@ type testCase struct {
 }
 
 func setupClient(t *testing.T) *ClientWithResponses {
-	httpClient := tests.NewHttpClient()
+	httpClient := tests.NewHttpClient(t)
 	client, err := NewClientWithResponses(baseURL, WithHTTPClient(httpClient))
 	if err != nil {
 		t.Fatalf("creating client: %v", err)
