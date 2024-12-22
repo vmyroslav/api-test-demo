@@ -2,12 +2,11 @@ package oapi
 
 import (
 	"context"
-	"faker-api-test-demo/tests"
+	"github.com/vmyroslav/api-test-demo/tests"
 	"testing"
 )
 
 const baseURL = "https://fakerestapi.azurewebsites.net"
-const baseURL2 = "http://localhost:8500"
 
 type testCase struct {
 	name     string

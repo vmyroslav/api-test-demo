@@ -7,11 +7,6 @@ env:
   SIMULATION_PATH: ./testdata/hoverfly/
 
 tasks:
-  build:
-    desc: "Build the project"
-    cmds:
-      - go build -v -i main.go
-
   test:
     desc: "Run tests locally"
     cmds:
@@ -19,7 +14,7 @@ tasks:
       - cd ./client/openapi && go test -race -timeout=30s -v ./...
 
   build:container:
-    desc: "Build all containers"
+    desc: "Build all docker compose services"
     cmds:
       - docker-compose build
 
@@ -28,6 +23,44 @@ tasks:
     desc: Run tests locally against real API
     cmds:
       - go test -v ./...
+
+  test:local:capture:
+    desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
+    deps: [ hoverfly:start ]
+    env:
+      HTTP_PROXY: http://localhost:8500
+      HTTPS_PROXY: http://localhost:8500
+    cmds:
+      - task: bootstrap
+        vars:
+          SERVICE: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: capture
+      - task: test
+      - task: hoverfly:export
+        vars:
+          SIMULATION_PATH: ./testdata/hoverfly
+          SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
+
+  test:local:simulate:
+    desc: Run tests locally simulating the API with Hoverfly
+    deps: [ hoverfly:start ]
+    env:
+      HTTP_PROXY: http://localhost:8500
+      HTTPS_PROXY: http://localhost:8500
+    cmds:
+      - task: bootstrap
+        vars:
+          SERVICE: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: simulate
+      - task: hoverfly:import
+        vars:
+          SIMULATION_PATH: ./testdata/hoverfly
+          SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
+      - task: test
 
   bootstrap:
     desc: Bootstrap a Docker Compose service if it's not running
@@ -60,44 +93,6 @@ tasks:
         fi
     silent: true
     internal: true
-
-  test:local:capture:
-    desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
-    deps: [hoverfly:start]
-    env:
-      HTTP_PROXY: http://localhost:8500
-      HTTPS_PROXY: http://localhost:8500
-    cmds:
-      - task: bootstrap
-        vars:
-          SERVICE: hoverfly
-      - task: hoverfly:mode
-        vars:
-          MODE: capture
-      - task: test
-      - task: hoverfly:export
-        vars:
-            SIMULATION_PATH: ./testdata/hoverfly
-            SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
-
-  test:local:simulate:
-    desc: Run tests locally simulating the API with Hoverfly
-    deps: [ hoverfly:start ]
-    env:
-      HTTP_PROXY: http://localhost:8500
-      HTTPS_PROXY: http://localhost:8500
-    cmds:
-      - task: bootstrap
-        vars:
-          SERVICE: hoverfly
-      - task: hoverfly:mode
-        vars:
-          MODE: simulate
-      - task: hoverfly:import
-        vars:
-          SIMULATION_PATH: ./testdata/hoverfly
-          SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
-      - task: test
 
   test:container:
     desc: Run tests in container against real API

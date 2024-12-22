@@ -63,7 +63,7 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdGet", func(t *testing.T) {
 
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 

@@ -1,4 +1,4 @@
-module faker-api-test-demo
+module github.com/vmyroslav/api-test-demo
 
 go 1.23
 

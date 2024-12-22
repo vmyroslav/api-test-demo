@@ -14,12 +14,14 @@ import (
 	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vmyroslav/api-test-demo/tests"
 	"testing"
 )
 
 func Test_openapi_UsersAPIService(t *testing.T) {
-
 	configuration := openapiclient.NewConfiguration()
+	configuration.HTTPClient = tests.NewHttpClient(t)
+
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test UsersAPIService ApiV1UsersGet", func(t *testing.T) {
