@@ -11,11 +11,12 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	openapiclient "github.com/vmyroslav/api-test-demo/client/openapi"
 	"github.com/vmyroslav/api-test-demo/tests"
-	"testing"
 )
 
 func Test_openapi_UsersAPIService(t *testing.T) {
@@ -25,35 +26,31 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test UsersAPIService ApiV1UsersGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
-
 		resp, httpRes, err := apiClient.UsersAPI.ApiV1UsersGet(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
+
 		assert.Equal(t, 200, httpRes.StatusCode)
 
+		for i, user := range resp {
+			assert.Greater(t, user.GetId(), int32(0), "element #%d should contain positive id", i)
+			assert.NotEmpty(t, user.GetUserName(), "element #%d should contain username", i)
+			assert.NotEmpty(t, user.GetPassword(), "element #%d should contain password", i)
+		}
 	})
 
 	t.Run("Test UsersAPIService ApiV1UsersIdDelete", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
-
-		var id int32
+		var id int32 = 1
 
 		httpRes, err := apiClient.UsersAPI.ApiV1UsersIdDelete(context.Background(), id).Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test UsersAPIService ApiV1UsersIdGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
-
-		var id int32
+		var id int32 = 10
 
 		httpRes, err := apiClient.UsersAPI.ApiV1UsersIdGet(context.Background(), id).Execute()
 
@@ -63,27 +60,29 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 	})
 
 	t.Run("Test UsersAPIService ApiV1UsersIdPut", func(t *testing.T) {
+		var (
+			id  int32 = 1
+			req       = apiClient.UsersAPI.ApiV1UsersIdPut(context.Background(), id)
+		)
 
-		//t.Skip("skip test") // remove to run test
+		req = req.User(openapiclient.User{
+			Id:       tests.ToPtr(id),
+			UserName: *openapiclient.NewNullableString(tests.ToPtr("some_username")),
+			Password: *openapiclient.NewNullableString(tests.ToPtr("some_password")),
+		})
 
-		var id int32
-
-		httpRes, err := apiClient.UsersAPI.ApiV1UsersIdPut(context.Background(), id).Execute()
+		httpRes, err := req.Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test UsersAPIService ApiV1UsersPost", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		httpRes, err := apiClient.UsersAPI.ApiV1UsersPost(context.Background()).Execute()
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
-
 }

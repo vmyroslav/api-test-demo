@@ -12,7 +12,7 @@ import (
 func NewHttpClient(t testing.TB) *http.Client {
 	t.Helper()
 
-	var hoverflyAddr, ok = os.LookupEnv("HOVERFLY_PROXY")
+	hoverflyAddr, ok := os.LookupEnv("HOVERFLY_PROXY")
 	if !ok {
 		return http.DefaultClient
 	}
@@ -35,4 +35,13 @@ func NewHttpClient(t testing.TB) *http.Client {
 
 func HostURL() string {
 	return "https://fakerestapi.azurewebsites.net"
+}
+
+// ToPtr converts a value of any type to a pointer.
+// Example:
+//
+//	numPtr := ToPtr(42)      // *int
+//	strPtr := ToPtr("hello") // *string
+func ToPtr[T any](v T) *T {
+	return &v
 }

@@ -28,7 +28,9 @@ services:
       generate -i ./api/test_api.json 
       -g go 
       -o ./client/openapi 
-      --additional-properties=packageName=openapi
+      --git-user-id=vmyroslav
+      --git-repo-id=api-test-demo
+      --additional-properties=packageName=openapi,withGoMod=false
 
   hoverfly:
     container_name: api-test-demo-hoverfly

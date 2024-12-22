@@ -11,20 +11,19 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
+	openapiclient "github.com/vmyroslav/api-test-demo/client/openapi"
 )
 
 func Test_openapi_CoverPhotosAPIService(t *testing.T) {
-
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosBooksCoversIdBookGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var idBook int32
 
@@ -33,24 +32,20 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.CoverPhotosAPI.ApiV1CoverPhotosGet(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdDelete", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -58,11 +53,9 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdGet", func(t *testing.T) {
-
 		t.Skip("skip test") // remove to run test
 
 		var id int32
@@ -72,12 +65,10 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosIdPut", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -86,19 +77,15 @@ func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosPost", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.CoverPhotosAPI.ApiV1CoverPhotosPost(context.Background()).Execute()
 
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
-
 }

@@ -13,6 +13,11 @@ tasks:
       - go test -race -timeout=30s -v ./...
       - cd ./client/openapi && go test -race -timeout=30s -v ./...
 
+  fumpt:
+    desc: Gofumpt project files
+    cmds:
+      - find . -name '*.go' -type f -exec gofumpt -w {} +
+
   build:container:
     desc: "Build all docker compose services"
     cmds:
@@ -150,5 +155,4 @@ tasks:
     desc: "Generate the HTTP client using OpenAPI Generator"
     cmds:
       - docker-compose run --rm openapi-generator
-      - cd ./client/openapi && go mod tidy
       - cd ./client/openapi && gofmt -w .

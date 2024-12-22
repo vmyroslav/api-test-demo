@@ -11,14 +11,14 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
+	openapiclient "github.com/vmyroslav/api-test-demo/client/openapi"
 )
 
 func Test_openapi_AuthorsAPIService(t *testing.T) {
-
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
 
@@ -26,8 +26,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 	configuration.Scheme = "https"
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsAuthorsBooksIdBookGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var idBook int32
 
@@ -48,8 +47,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.AuthorsAPI.ApiV1AuthorsGet(context.Background()).Execute()
 
@@ -61,8 +59,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdDelete", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -70,12 +67,10 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 
@@ -97,12 +92,11 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsIdPut", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 
-		var author = openapiclient.Author{
+		author := openapiclient.Author{
 			Id:        openapiclient.PtrInt32(-1),
 			IdBook:    openapiclient.PtrInt32(0),
 			FirstName: *openapiclient.NewNullableString(openapiclient.PtrString("First Name")),
@@ -124,9 +118,8 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 	})
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsPost", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
-		var author = openapiclient.Author{
+		t.Skip("skip test") // remove to run test
+		author := openapiclient.Author{
 			Id:        openapiclient.PtrInt32(-1),
 			IdBook:    openapiclient.PtrInt32(0),
 			FirstName: *openapiclient.NewNullableString(openapiclient.PtrString("First Name")),
@@ -145,7 +138,5 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 		assert.Equal(t, int32(0), resp.GetIdBook())
 		assert.Equal(t, "First Name", resp.GetFirstName())
 		assert.Equal(t, "Last Name", resp.GetLastName())
-
 	})
-
 }

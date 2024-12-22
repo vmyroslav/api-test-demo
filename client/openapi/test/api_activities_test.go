@@ -11,23 +11,22 @@ package openapi
 
 import (
 	"context"
-	openapiclient "github.com/GIT_USER_ID/GIT_REPO_ID"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	openapiclient "github.com/vmyroslav/api-test-demo/client/openapi"
 )
 
 func Test_openapi_ActivitiesAPIService(t *testing.T) {
-
 	configuration := openapiclient.NewConfiguration()
 	configuration.Host = "fakerestapi.azurewebsites.net"
 	configuration.Scheme = "https"
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		resp, httpRes, err := apiClient.ActivitiesAPI.ApiV1ActivitiesGet(context.Background()).Execute()
 
@@ -41,8 +40,7 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 	})
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesIdDelete", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32 = 1
 
@@ -50,12 +48,10 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesIdGet", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32 = 1
 
@@ -68,8 +64,7 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 	})
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesIdGet with negative id", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32 = -1
 
@@ -82,13 +77,12 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 	})
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesIdPut", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 
 		var id int32
 
 		utc := time.Now().UTC()
-		var activity = openapiclient.Activity{
+		activity := openapiclient.Activity{
 			Id:        openapiclient.PtrInt32(1),
 			DueDate:   openapiclient.PtrTime(utc),
 			Completed: openapiclient.PtrBool(false),
@@ -104,14 +98,12 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 		assert.Equal(t, int32(1), resp.GetId())
 		assert.True(t, resp.GetDueDate().Equal(utc))
 		assert.False(t, resp.GetCompleted())
-
 	})
 
 	t.Run("Test ActivitiesAPIService ApiV1ActivitiesPost", func(t *testing.T) {
-
-		//t.Skip("skip test") // remove to run test
+		t.Skip("skip test") // remove to run test
 		utc := time.Now().UTC()
-		var activity = openapiclient.Activity{
+		activity := openapiclient.Activity{
 			Id:      openapiclient.PtrInt32(1),
 			DueDate: openapiclient.PtrTime(utc),
 		}
@@ -127,5 +119,4 @@ func Test_openapi_ActivitiesAPIService(t *testing.T) {
 		assert.True(t, resp.GetDueDate().Equal(utc))
 		assert.False(t, resp.GetCompleted())
 	})
-
 }

@@ -4,6 +4,7 @@ version: 3
 env:
   COMPOSE_SERVICE_NAME: hoverfly
   SIMULATION_PATH: ./testdata/hoverfly/
+  HOVERFLY_PROXY: localhost:8500
 
 tasks:
   build:

@@ -20,8 +20,6 @@ docs/CoverPhotosAPI.md
 docs/User.md
 docs/UsersAPI.md
 git_push.sh
-go.mod
-go.sum
 model_activity.go
 model_author.go
 model_book.go
