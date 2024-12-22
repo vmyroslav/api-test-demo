@@ -90,8 +90,8 @@ func NewConfiguration() *Configuration {
 		Debug:         false,
 		Servers: ServerConfigurations{
 			{
-				URL:         "",
-				Description: "No description provided",
+				URL:         "https://fakerestapi.azurewebsites.net",
+				Description: "Real server",
 			},
 		},
 		OperationServers: map[string]ServerConfigurations{},

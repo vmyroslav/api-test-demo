@@ -4,21 +4,25 @@ import (
 	"crypto/tls"
 	"net/http"
 	"net/url"
+	"os"
 	"testing"
+	"time"
 )
 
 func NewHttpClient(t testing.TB) *http.Client {
 	t.Helper()
 
-	//if os.Getenv("HTTP_PROXY") == "" {
-	//	return http.DefaultClient
-	//}
+	var hoverflyAddr, ok = os.LookupEnv("HOVERFLY_PROXY")
+	if !ok {
+		return http.DefaultClient
+	}
 
 	client := &http.Client{
+		Timeout: 5 * time.Second,
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(&url.URL{
 				Scheme: "http",
-				Host:   "localhost:8500",
+				Host:   hoverflyAddr,
 			}),
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true, // Skip certificate verification when using Hoverfly

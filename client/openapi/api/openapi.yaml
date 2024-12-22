@@ -3,7 +3,8 @@ info:
   title: FakeRESTApi.Web V1
   version: v1
 servers:
-- url: /
+- description: Real server
+  url: https://fakerestapi.azurewebsites.net
 paths:
   /api/v1/Activities:
     get:

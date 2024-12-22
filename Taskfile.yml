@@ -14,20 +14,11 @@ tasks:
     cmds:
       - go build -v -i main.go
 
-  generate:oapi:
-    desc: "Generate the HTTP client using oapi-codegen"
-    cmds:
-      - docker-compose run --rm oapi-generator
-
-  generate:openapi:
-    desc: "Generate the HTTP client using OpenAPI Generator"
-    cmds:
-      - docker-compose run --rm openapi-generator
-
   test:
     desc: "Run tests locally"
     cmds:
       - go test -race -timeout=30s -v ./...
+      - cd ./client/openapi && go test -race -timeout=30s -v ./...
 
   build:container:
     desc: "Build all containers"
@@ -155,3 +146,14 @@ tasks:
     cmds:
       - task: hoverfly:stop
       - task: hoverfly:clear
+
+  # Client Generation Tasks
+  generate:oapi:
+    desc: "Generate the HTTP client using oapi-codegen"
+    cmds:
+      - docker-compose run --rm oapi-generator
+
+  generate:openapi:
+    desc: "Generate the HTTP client using OpenAPI Generator"
+    cmds:
+      - docker-compose run --rm openapi-generator
