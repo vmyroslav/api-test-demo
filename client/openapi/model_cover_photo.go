@@ -19,9 +19,9 @@ var _ MappedNullable = &CoverPhoto{}
 
 // CoverPhoto struct for CoverPhoto
 type CoverPhoto struct {
-	Id *int32 `json:"id,omitempty"`
-	IdBook *int32 `json:"idBook,omitempty"`
-	Url NullableString `json:"url,omitempty"`
+	Id     *int32         `json:"id,omitempty"`
+	IdBook *int32         `json:"idBook,omitempty"`
+	Url    NullableString `json:"url,omitempty"`
 }
 
 // NewCoverPhoto instantiates a new CoverPhoto object
@@ -137,6 +137,7 @@ func (o *CoverPhoto) HasUrl() bool {
 func (o *CoverPhoto) SetUrl(v string) {
 	o.Url.Set(&v)
 }
+
 // SetUrlNil sets the value for Url to be an explicit nil
 func (o *CoverPhoto) SetUrlNil() {
 	o.Url.Set(nil)
@@ -148,7 +149,7 @@ func (o *CoverPhoto) UnsetUrl() {
 }
 
 func (o CoverPhoto) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -204,5 +205,3 @@ func (v *NullableCoverPhoto) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

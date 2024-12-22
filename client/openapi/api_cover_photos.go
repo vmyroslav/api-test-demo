@@ -19,14 +19,13 @@ import (
 	"strings"
 )
 
-
 // CoverPhotosAPIService CoverPhotosAPI service
 type CoverPhotosAPIService service
 
 type ApiApiV1CoverPhotosBooksCoversIdBookGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *CoverPhotosAPIService
-	idBook int32
+	idBook     int32
 }
 
 func (r ApiApiV1CoverPhotosBooksCoversIdBookGetRequest) Execute() ([]CoverPhoto, *http.Response, error) {
@@ -36,26 +35,27 @@ func (r ApiApiV1CoverPhotosBooksCoversIdBookGetRequest) Execute() ([]CoverPhoto,
 /*
 ApiV1CoverPhotosBooksCoversIdBookGet Method for ApiV1CoverPhotosBooksCoversIdBookGet
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param idBook
- @return ApiApiV1CoverPhotosBooksCoversIdBookGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param idBook
+	@return ApiApiV1CoverPhotosBooksCoversIdBookGetRequest
 */
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosBooksCoversIdBookGet(ctx context.Context, idBook int32) ApiApiV1CoverPhotosBooksCoversIdBookGetRequest {
 	return ApiApiV1CoverPhotosBooksCoversIdBookGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		idBook: idBook,
+		ctx:        ctx,
+		idBook:     idBook,
 	}
 }
 
 // Execute executes the request
-//  @return []CoverPhoto
+//
+//	@return []CoverPhoto
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosBooksCoversIdBookGetExecute(r ApiApiV1CoverPhotosBooksCoversIdBookGetRequest) ([]CoverPhoto, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  []CoverPhoto
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue []CoverPhoto
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CoverPhotosAPIService.ApiV1CoverPhotosBooksCoversIdBookGet")
@@ -125,7 +125,7 @@ func (a *CoverPhotosAPIService) ApiV1CoverPhotosBooksCoversIdBookGetExecute(r Ap
 }
 
 type ApiApiV1CoverPhotosGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *CoverPhotosAPIService
 }
 
@@ -136,24 +136,25 @@ func (r ApiApiV1CoverPhotosGetRequest) Execute() ([]CoverPhoto, *http.Response, 
 /*
 ApiV1CoverPhotosGet Method for ApiV1CoverPhotosGet
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiApiV1CoverPhotosGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiApiV1CoverPhotosGetRequest
 */
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosGet(ctx context.Context) ApiApiV1CoverPhotosGetRequest {
 	return ApiApiV1CoverPhotosGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return []CoverPhoto
+//
+//	@return []CoverPhoto
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosGetExecute(r ApiApiV1CoverPhotosGetRequest) ([]CoverPhoto, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  []CoverPhoto
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue []CoverPhoto
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CoverPhotosAPIService.ApiV1CoverPhotosGet")
@@ -222,9 +223,9 @@ func (a *CoverPhotosAPIService) ApiV1CoverPhotosGetExecute(r ApiApiV1CoverPhotos
 }
 
 type ApiApiV1CoverPhotosIdDeleteRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *CoverPhotosAPIService
-	id int32
+	id         int32
 }
 
 func (r ApiApiV1CoverPhotosIdDeleteRequest) Execute() (*http.Response, error) {
@@ -234,24 +235,24 @@ func (r ApiApiV1CoverPhotosIdDeleteRequest) Execute() (*http.Response, error) {
 /*
 ApiV1CoverPhotosIdDelete Method for ApiV1CoverPhotosIdDelete
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id
- @return ApiApiV1CoverPhotosIdDeleteRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id
+	@return ApiApiV1CoverPhotosIdDeleteRequest
 */
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdDelete(ctx context.Context, id int32) ApiApiV1CoverPhotosIdDeleteRequest {
 	return ApiApiV1CoverPhotosIdDeleteRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
 // Execute executes the request
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdDeleteExecute(r ApiApiV1CoverPhotosIdDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodDelete
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CoverPhotosAPIService.ApiV1CoverPhotosIdDelete")
@@ -312,9 +313,9 @@ func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdDeleteExecute(r ApiApiV1CoverP
 }
 
 type ApiApiV1CoverPhotosIdGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *CoverPhotosAPIService
-	id int32
+	id         int32
 }
 
 func (r ApiApiV1CoverPhotosIdGetRequest) Execute() (*CoverPhoto, *http.Response, error) {
@@ -324,26 +325,27 @@ func (r ApiApiV1CoverPhotosIdGetRequest) Execute() (*CoverPhoto, *http.Response,
 /*
 ApiV1CoverPhotosIdGet Method for ApiV1CoverPhotosIdGet
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id
- @return ApiApiV1CoverPhotosIdGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id
+	@return ApiApiV1CoverPhotosIdGetRequest
 */
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdGet(ctx context.Context, id int32) ApiApiV1CoverPhotosIdGetRequest {
 	return ApiApiV1CoverPhotosIdGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
 // Execute executes the request
-//  @return CoverPhoto
+//
+//	@return CoverPhoto
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdGetExecute(r ApiApiV1CoverPhotosIdGetRequest) (*CoverPhoto, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *CoverPhoto
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CoverPhoto
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CoverPhotosAPIService.ApiV1CoverPhotosIdGet")
@@ -413,9 +415,9 @@ func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdGetExecute(r ApiApiV1CoverPhot
 }
 
 type ApiApiV1CoverPhotosIdPutRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *CoverPhotosAPIService
-	id int32
+	id         int32
 	coverPhoto *CoverPhoto
 }
 
@@ -431,26 +433,27 @@ func (r ApiApiV1CoverPhotosIdPutRequest) Execute() (*CoverPhoto, *http.Response,
 /*
 ApiV1CoverPhotosIdPut Method for ApiV1CoverPhotosIdPut
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id
- @return ApiApiV1CoverPhotosIdPutRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id
+	@return ApiApiV1CoverPhotosIdPutRequest
 */
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdPut(ctx context.Context, id int32) ApiApiV1CoverPhotosIdPutRequest {
 	return ApiApiV1CoverPhotosIdPutRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
 // Execute executes the request
-//  @return CoverPhoto
+//
+//	@return CoverPhoto
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdPutExecute(r ApiApiV1CoverPhotosIdPutRequest) (*CoverPhoto, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPut
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *CoverPhoto
+		localVarHTTPMethod  = http.MethodPut
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CoverPhoto
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CoverPhotosAPIService.ApiV1CoverPhotosIdPut")
@@ -522,7 +525,7 @@ func (a *CoverPhotosAPIService) ApiV1CoverPhotosIdPutExecute(r ApiApiV1CoverPhot
 }
 
 type ApiApiV1CoverPhotosPostRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *CoverPhotosAPIService
 	coverPhoto *CoverPhoto
 }
@@ -539,24 +542,25 @@ func (r ApiApiV1CoverPhotosPostRequest) Execute() (*CoverPhoto, *http.Response, 
 /*
 ApiV1CoverPhotosPost Method for ApiV1CoverPhotosPost
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiApiV1CoverPhotosPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiApiV1CoverPhotosPostRequest
 */
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosPost(ctx context.Context) ApiApiV1CoverPhotosPostRequest {
 	return ApiApiV1CoverPhotosPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return CoverPhoto
+//
+//	@return CoverPhoto
 func (a *CoverPhotosAPIService) ApiV1CoverPhotosPostExecute(r ApiApiV1CoverPhotosPostRequest) (*CoverPhoto, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *CoverPhoto
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *CoverPhoto
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "CoverPhotosAPIService.ApiV1CoverPhotosPost")

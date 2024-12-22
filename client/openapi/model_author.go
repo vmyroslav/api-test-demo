@@ -19,10 +19,10 @@ var _ MappedNullable = &Author{}
 
 // Author struct for Author
 type Author struct {
-	Id *int32 `json:"id,omitempty"`
-	IdBook *int32 `json:"idBook,omitempty"`
+	Id        *int32         `json:"id,omitempty"`
+	IdBook    *int32         `json:"idBook,omitempty"`
 	FirstName NullableString `json:"firstName,omitempty"`
-	LastName NullableString `json:"lastName,omitempty"`
+	LastName  NullableString `json:"lastName,omitempty"`
 }
 
 // NewAuthor instantiates a new Author object
@@ -138,6 +138,7 @@ func (o *Author) HasFirstName() bool {
 func (o *Author) SetFirstName(v string) {
 	o.FirstName.Set(&v)
 }
+
 // SetFirstNameNil sets the value for FirstName to be an explicit nil
 func (o *Author) SetFirstNameNil() {
 	o.FirstName.Set(nil)
@@ -180,6 +181,7 @@ func (o *Author) HasLastName() bool {
 func (o *Author) SetLastName(v string) {
 	o.LastName.Set(&v)
 }
+
 // SetLastNameNil sets the value for LastName to be an explicit nil
 func (o *Author) SetLastNameNil() {
 	o.LastName.Set(nil)
@@ -191,7 +193,7 @@ func (o *Author) UnsetLastName() {
 }
 
 func (o Author) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -250,5 +252,3 @@ func (v *NullableAuthor) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

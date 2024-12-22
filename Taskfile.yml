@@ -157,3 +157,5 @@ tasks:
     desc: "Generate the HTTP client using OpenAPI Generator"
     cmds:
       - docker-compose run --rm openapi-generator
+      - cd ./client/openapi && go mod tidy
+      - cd ./client/openapi && gofmt -w .

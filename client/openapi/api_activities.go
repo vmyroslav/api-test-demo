@@ -19,12 +19,11 @@ import (
 	"strings"
 )
 
-
 // ActivitiesAPIService ActivitiesAPI service
 type ActivitiesAPIService service
 
 type ApiApiV1ActivitiesGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *ActivitiesAPIService
 }
 
@@ -35,24 +34,25 @@ func (r ApiApiV1ActivitiesGetRequest) Execute() ([]Activity, *http.Response, err
 /*
 ApiV1ActivitiesGet Method for ApiV1ActivitiesGet
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiApiV1ActivitiesGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiApiV1ActivitiesGetRequest
 */
 func (a *ActivitiesAPIService) ApiV1ActivitiesGet(ctx context.Context) ApiApiV1ActivitiesGetRequest {
 	return ApiApiV1ActivitiesGetRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return []Activity
+//
+//	@return []Activity
 func (a *ActivitiesAPIService) ApiV1ActivitiesGetExecute(r ApiApiV1ActivitiesGetRequest) ([]Activity, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  []Activity
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue []Activity
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ActivitiesAPIService.ApiV1ActivitiesGet")
@@ -121,9 +121,9 @@ func (a *ActivitiesAPIService) ApiV1ActivitiesGetExecute(r ApiApiV1ActivitiesGet
 }
 
 type ApiApiV1ActivitiesIdDeleteRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *ActivitiesAPIService
-	id int32
+	id         int32
 }
 
 func (r ApiApiV1ActivitiesIdDeleteRequest) Execute() (*http.Response, error) {
@@ -133,24 +133,24 @@ func (r ApiApiV1ActivitiesIdDeleteRequest) Execute() (*http.Response, error) {
 /*
 ApiV1ActivitiesIdDelete Method for ApiV1ActivitiesIdDelete
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id
- @return ApiApiV1ActivitiesIdDeleteRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id
+	@return ApiApiV1ActivitiesIdDeleteRequest
 */
 func (a *ActivitiesAPIService) ApiV1ActivitiesIdDelete(ctx context.Context, id int32) ApiApiV1ActivitiesIdDeleteRequest {
 	return ApiApiV1ActivitiesIdDeleteRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
 // Execute executes the request
 func (a *ActivitiesAPIService) ApiV1ActivitiesIdDeleteExecute(r ApiApiV1ActivitiesIdDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodDelete
-		localVarPostBody     interface{}
-		formFiles            []formFile
+		localVarHTTPMethod = http.MethodDelete
+		localVarPostBody   interface{}
+		formFiles          []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ActivitiesAPIService.ApiV1ActivitiesIdDelete")
@@ -211,9 +211,9 @@ func (a *ActivitiesAPIService) ApiV1ActivitiesIdDeleteExecute(r ApiApiV1Activiti
 }
 
 type ApiApiV1ActivitiesIdGetRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *ActivitiesAPIService
-	id int32
+	id         int32
 }
 
 func (r ApiApiV1ActivitiesIdGetRequest) Execute() (*Activity, *http.Response, error) {
@@ -223,26 +223,27 @@ func (r ApiApiV1ActivitiesIdGetRequest) Execute() (*Activity, *http.Response, er
 /*
 ApiV1ActivitiesIdGet Method for ApiV1ActivitiesIdGet
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id
- @return ApiApiV1ActivitiesIdGetRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id
+	@return ApiApiV1ActivitiesIdGetRequest
 */
 func (a *ActivitiesAPIService) ApiV1ActivitiesIdGet(ctx context.Context, id int32) ApiApiV1ActivitiesIdGetRequest {
 	return ApiApiV1ActivitiesIdGetRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
 // Execute executes the request
-//  @return Activity
+//
+//	@return Activity
 func (a *ActivitiesAPIService) ApiV1ActivitiesIdGetExecute(r ApiApiV1ActivitiesIdGetRequest) (*Activity, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodGet
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Activity
+		localVarHTTPMethod  = http.MethodGet
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Activity
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ActivitiesAPIService.ApiV1ActivitiesIdGet")
@@ -312,10 +313,10 @@ func (a *ActivitiesAPIService) ApiV1ActivitiesIdGetExecute(r ApiApiV1ActivitiesI
 }
 
 type ApiApiV1ActivitiesIdPutRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *ActivitiesAPIService
-	id int32
-	activity *Activity
+	id         int32
+	activity   *Activity
 }
 
 func (r ApiApiV1ActivitiesIdPutRequest) Activity(activity Activity) ApiApiV1ActivitiesIdPutRequest {
@@ -330,26 +331,27 @@ func (r ApiApiV1ActivitiesIdPutRequest) Execute() (*Activity, *http.Response, er
 /*
 ApiV1ActivitiesIdPut Method for ApiV1ActivitiesIdPut
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @param id
- @return ApiApiV1ActivitiesIdPutRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@param id
+	@return ApiApiV1ActivitiesIdPutRequest
 */
 func (a *ActivitiesAPIService) ApiV1ActivitiesIdPut(ctx context.Context, id int32) ApiApiV1ActivitiesIdPutRequest {
 	return ApiApiV1ActivitiesIdPutRequest{
 		ApiService: a,
-		ctx: ctx,
-		id: id,
+		ctx:        ctx,
+		id:         id,
 	}
 }
 
 // Execute executes the request
-//  @return Activity
+//
+//	@return Activity
 func (a *ActivitiesAPIService) ApiV1ActivitiesIdPutExecute(r ApiApiV1ActivitiesIdPutRequest) (*Activity, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPut
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Activity
+		localVarHTTPMethod  = http.MethodPut
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Activity
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ActivitiesAPIService.ApiV1ActivitiesIdPut")
@@ -421,9 +423,9 @@ func (a *ActivitiesAPIService) ApiV1ActivitiesIdPutExecute(r ApiApiV1ActivitiesI
 }
 
 type ApiApiV1ActivitiesPostRequest struct {
-	ctx context.Context
+	ctx        context.Context
 	ApiService *ActivitiesAPIService
-	activity *Activity
+	activity   *Activity
 }
 
 func (r ApiApiV1ActivitiesPostRequest) Activity(activity Activity) ApiApiV1ActivitiesPostRequest {
@@ -438,24 +440,25 @@ func (r ApiApiV1ActivitiesPostRequest) Execute() (*Activity, *http.Response, err
 /*
 ApiV1ActivitiesPost Method for ApiV1ActivitiesPost
 
- @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
- @return ApiApiV1ActivitiesPostRequest
+	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+	@return ApiApiV1ActivitiesPostRequest
 */
 func (a *ActivitiesAPIService) ApiV1ActivitiesPost(ctx context.Context) ApiApiV1ActivitiesPostRequest {
 	return ApiApiV1ActivitiesPostRequest{
 		ApiService: a,
-		ctx: ctx,
+		ctx:        ctx,
 	}
 }
 
 // Execute executes the request
-//  @return Activity
+//
+//	@return Activity
 func (a *ActivitiesAPIService) ApiV1ActivitiesPostExecute(r ApiApiV1ActivitiesPostRequest) (*Activity, *http.Response, error) {
 	var (
-		localVarHTTPMethod   = http.MethodPost
-		localVarPostBody     interface{}
-		formFiles            []formFile
-		localVarReturnValue  *Activity
+		localVarHTTPMethod  = http.MethodPost
+		localVarPostBody    interface{}
+		formFiles           []formFile
+		localVarReturnValue *Activity
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "ActivitiesAPIService.ApiV1ActivitiesPost")
