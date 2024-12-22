@@ -19,11 +19,12 @@ import (
 	"strings"
 )
 
+
 // BooksAPIService BooksAPI service
 type BooksAPIService service
 
 type ApiApiV1BooksGetRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *BooksAPIService
 }
 
@@ -34,25 +35,24 @@ func (r ApiApiV1BooksGetRequest) Execute() ([]Book, *http.Response, error) {
 /*
 ApiV1BooksGet Method for ApiV1BooksGet
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiApiV1BooksGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiApiV1BooksGetRequest
 */
 func (a *BooksAPIService) ApiV1BooksGet(ctx context.Context) ApiApiV1BooksGetRequest {
 	return ApiApiV1BooksGetRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return []Book
+//  @return []Book
 func (a *BooksAPIService) ApiV1BooksGetExecute(r ApiApiV1BooksGetRequest) ([]Book, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue []Book
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  []Book
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BooksAPIService.ApiV1BooksGet")
@@ -121,9 +121,9 @@ func (a *BooksAPIService) ApiV1BooksGetExecute(r ApiApiV1BooksGetRequest) ([]Boo
 }
 
 type ApiApiV1BooksIdDeleteRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *BooksAPIService
-	id         int32
+	id int32
 }
 
 func (r ApiApiV1BooksIdDeleteRequest) Execute() (*http.Response, error) {
@@ -133,24 +133,24 @@ func (r ApiApiV1BooksIdDeleteRequest) Execute() (*http.Response, error) {
 /*
 ApiV1BooksIdDelete Method for ApiV1BooksIdDelete
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param id
-	@return ApiApiV1BooksIdDeleteRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id
+ @return ApiApiV1BooksIdDeleteRequest
 */
 func (a *BooksAPIService) ApiV1BooksIdDelete(ctx context.Context, id int32) ApiApiV1BooksIdDeleteRequest {
 	return ApiApiV1BooksIdDeleteRequest{
 		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ctx: ctx,
+		id: id,
 	}
 }
 
 // Execute executes the request
 func (a *BooksAPIService) ApiV1BooksIdDeleteExecute(r ApiApiV1BooksIdDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodDelete
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BooksAPIService.ApiV1BooksIdDelete")
@@ -211,9 +211,9 @@ func (a *BooksAPIService) ApiV1BooksIdDeleteExecute(r ApiApiV1BooksIdDeleteReque
 }
 
 type ApiApiV1BooksIdGetRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *BooksAPIService
-	id         int32
+	id int32
 }
 
 func (r ApiApiV1BooksIdGetRequest) Execute() (*Book, *http.Response, error) {
@@ -223,27 +223,26 @@ func (r ApiApiV1BooksIdGetRequest) Execute() (*Book, *http.Response, error) {
 /*
 ApiV1BooksIdGet Method for ApiV1BooksIdGet
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param id
-	@return ApiApiV1BooksIdGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id
+ @return ApiApiV1BooksIdGetRequest
 */
 func (a *BooksAPIService) ApiV1BooksIdGet(ctx context.Context, id int32) ApiApiV1BooksIdGetRequest {
 	return ApiApiV1BooksIdGetRequest{
 		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ctx: ctx,
+		id: id,
 	}
 }
 
 // Execute executes the request
-//
-//	@return Book
+//  @return Book
 func (a *BooksAPIService) ApiV1BooksIdGetExecute(r ApiApiV1BooksIdGetRequest) (*Book, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue *Book
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  *Book
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BooksAPIService.ApiV1BooksIdGet")
@@ -313,10 +312,10 @@ func (a *BooksAPIService) ApiV1BooksIdGetExecute(r ApiApiV1BooksIdGetRequest) (*
 }
 
 type ApiApiV1BooksIdPutRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *BooksAPIService
-	id         int32
-	book       *Book
+	id int32
+	book *Book
 }
 
 func (r ApiApiV1BooksIdPutRequest) Book(book Book) ApiApiV1BooksIdPutRequest {
@@ -331,24 +330,24 @@ func (r ApiApiV1BooksIdPutRequest) Execute() (*http.Response, error) {
 /*
 ApiV1BooksIdPut Method for ApiV1BooksIdPut
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param id
-	@return ApiApiV1BooksIdPutRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id
+ @return ApiApiV1BooksIdPutRequest
 */
 func (a *BooksAPIService) ApiV1BooksIdPut(ctx context.Context, id int32) ApiApiV1BooksIdPutRequest {
 	return ApiApiV1BooksIdPutRequest{
 		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ctx: ctx,
+		id: id,
 	}
 }
 
 // Execute executes the request
 func (a *BooksAPIService) ApiV1BooksIdPutExecute(r ApiApiV1BooksIdPutRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodPut
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodPut
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BooksAPIService.ApiV1BooksIdPut")
@@ -411,9 +410,9 @@ func (a *BooksAPIService) ApiV1BooksIdPutExecute(r ApiApiV1BooksIdPutRequest) (*
 }
 
 type ApiApiV1BooksPostRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *BooksAPIService
-	book       *Book
+	book *Book
 }
 
 func (r ApiApiV1BooksPostRequest) Book(book Book) ApiApiV1BooksPostRequest {
@@ -428,22 +427,22 @@ func (r ApiApiV1BooksPostRequest) Execute() (*http.Response, error) {
 /*
 ApiV1BooksPost Method for ApiV1BooksPost
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiApiV1BooksPostRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiApiV1BooksPostRequest
 */
 func (a *BooksAPIService) ApiV1BooksPost(ctx context.Context) ApiApiV1BooksPostRequest {
 	return ApiApiV1BooksPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
 func (a *BooksAPIService) ApiV1BooksPostExecute(r ApiApiV1BooksPostRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodPost
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "BooksAPIService.ApiV1BooksPost")

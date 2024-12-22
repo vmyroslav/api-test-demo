@@ -19,7 +19,7 @@ var _ MappedNullable = &User{}
 
 // User struct for User
 type User struct {
-	Id       *int32         `json:"id,omitempty"`
+	Id *int32 `json:"id,omitempty"`
 	UserName NullableString `json:"userName,omitempty"`
 	Password NullableString `json:"password,omitempty"`
 }
@@ -105,7 +105,6 @@ func (o *User) HasUserName() bool {
 func (o *User) SetUserName(v string) {
 	o.UserName.Set(&v)
 }
-
 // SetUserNameNil sets the value for UserName to be an explicit nil
 func (o *User) SetUserNameNil() {
 	o.UserName.Set(nil)
@@ -148,7 +147,6 @@ func (o *User) HasPassword() bool {
 func (o *User) SetPassword(v string) {
 	o.Password.Set(&v)
 }
-
 // SetPasswordNil sets the value for Password to be an explicit nil
 func (o *User) SetPasswordNil() {
 	o.Password.Set(nil)
@@ -160,7 +158,7 @@ func (o *User) UnsetPassword() {
 }
 
 func (o User) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -216,3 +214,5 @@ func (v *NullableUser) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
+
+

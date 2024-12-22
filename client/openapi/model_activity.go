@@ -20,10 +20,10 @@ var _ MappedNullable = &Activity{}
 
 // Activity struct for Activity
 type Activity struct {
-	Id        *int32         `json:"id,omitempty"`
-	Title     NullableString `json:"title,omitempty"`
-	DueDate   *time.Time     `json:"dueDate,omitempty"`
-	Completed *bool          `json:"completed,omitempty"`
+	Id *int32 `json:"id,omitempty"`
+	Title NullableString `json:"title,omitempty"`
+	DueDate *time.Time `json:"dueDate,omitempty"`
+	Completed *bool `json:"completed,omitempty"`
 }
 
 // NewActivity instantiates a new Activity object
@@ -107,7 +107,6 @@ func (o *Activity) HasTitle() bool {
 func (o *Activity) SetTitle(v string) {
 	o.Title.Set(&v)
 }
-
 // SetTitleNil sets the value for Title to be an explicit nil
 func (o *Activity) SetTitleNil() {
 	o.Title.Set(nil)
@@ -183,7 +182,7 @@ func (o *Activity) SetCompleted(v bool) {
 }
 
 func (o Activity) MarshalJSON() ([]byte, error) {
-	toSerialize, err := o.ToMap()
+	toSerialize,err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -242,3 +241,5 @@ func (v *NullableActivity) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
+
+

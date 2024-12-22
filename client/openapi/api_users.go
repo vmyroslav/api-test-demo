@@ -19,11 +19,12 @@ import (
 	"strings"
 )
 
+
 // UsersAPIService UsersAPI service
 type UsersAPIService service
 
 type ApiApiV1UsersGetRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *UsersAPIService
 }
 
@@ -34,25 +35,24 @@ func (r ApiApiV1UsersGetRequest) Execute() ([]User, *http.Response, error) {
 /*
 ApiV1UsersGet Method for ApiV1UsersGet
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiApiV1UsersGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiApiV1UsersGetRequest
 */
 func (a *UsersAPIService) ApiV1UsersGet(ctx context.Context) ApiApiV1UsersGetRequest {
 	return ApiApiV1UsersGetRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
-//
-//	@return []User
+//  @return []User
 func (a *UsersAPIService) ApiV1UsersGetExecute(r ApiApiV1UsersGetRequest) ([]User, *http.Response, error) {
 	var (
-		localVarHTTPMethod  = http.MethodGet
-		localVarPostBody    interface{}
-		formFiles           []formFile
-		localVarReturnValue []User
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
+		localVarReturnValue  []User
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UsersAPIService.ApiV1UsersGet")
@@ -121,9 +121,9 @@ func (a *UsersAPIService) ApiV1UsersGetExecute(r ApiApiV1UsersGetRequest) ([]Use
 }
 
 type ApiApiV1UsersIdDeleteRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *UsersAPIService
-	id         int32
+	id int32
 }
 
 func (r ApiApiV1UsersIdDeleteRequest) Execute() (*http.Response, error) {
@@ -133,24 +133,24 @@ func (r ApiApiV1UsersIdDeleteRequest) Execute() (*http.Response, error) {
 /*
 ApiV1UsersIdDelete Method for ApiV1UsersIdDelete
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param id
-	@return ApiApiV1UsersIdDeleteRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id
+ @return ApiApiV1UsersIdDeleteRequest
 */
 func (a *UsersAPIService) ApiV1UsersIdDelete(ctx context.Context, id int32) ApiApiV1UsersIdDeleteRequest {
 	return ApiApiV1UsersIdDeleteRequest{
 		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ctx: ctx,
+		id: id,
 	}
 }
 
 // Execute executes the request
 func (a *UsersAPIService) ApiV1UsersIdDeleteExecute(r ApiApiV1UsersIdDeleteRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodDelete
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodDelete
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UsersAPIService.ApiV1UsersIdDelete")
@@ -211,9 +211,9 @@ func (a *UsersAPIService) ApiV1UsersIdDeleteExecute(r ApiApiV1UsersIdDeleteReque
 }
 
 type ApiApiV1UsersIdGetRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *UsersAPIService
-	id         int32
+	id int32
 }
 
 func (r ApiApiV1UsersIdGetRequest) Execute() (*http.Response, error) {
@@ -223,24 +223,24 @@ func (r ApiApiV1UsersIdGetRequest) Execute() (*http.Response, error) {
 /*
 ApiV1UsersIdGet Method for ApiV1UsersIdGet
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param id
-	@return ApiApiV1UsersIdGetRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id
+ @return ApiApiV1UsersIdGetRequest
 */
 func (a *UsersAPIService) ApiV1UsersIdGet(ctx context.Context, id int32) ApiApiV1UsersIdGetRequest {
 	return ApiApiV1UsersIdGetRequest{
 		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ctx: ctx,
+		id: id,
 	}
 }
 
 // Execute executes the request
 func (a *UsersAPIService) ApiV1UsersIdGetExecute(r ApiApiV1UsersIdGetRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodGet
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodGet
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UsersAPIService.ApiV1UsersIdGet")
@@ -301,10 +301,10 @@ func (a *UsersAPIService) ApiV1UsersIdGetExecute(r ApiApiV1UsersIdGetRequest) (*
 }
 
 type ApiApiV1UsersIdPutRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *UsersAPIService
-	id         int32
-	user       *User
+	id int32
+	user *User
 }
 
 func (r ApiApiV1UsersIdPutRequest) User(user User) ApiApiV1UsersIdPutRequest {
@@ -319,24 +319,24 @@ func (r ApiApiV1UsersIdPutRequest) Execute() (*http.Response, error) {
 /*
 ApiV1UsersIdPut Method for ApiV1UsersIdPut
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@param id
-	@return ApiApiV1UsersIdPutRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @param id
+ @return ApiApiV1UsersIdPutRequest
 */
 func (a *UsersAPIService) ApiV1UsersIdPut(ctx context.Context, id int32) ApiApiV1UsersIdPutRequest {
 	return ApiApiV1UsersIdPutRequest{
 		ApiService: a,
-		ctx:        ctx,
-		id:         id,
+		ctx: ctx,
+		id: id,
 	}
 }
 
 // Execute executes the request
 func (a *UsersAPIService) ApiV1UsersIdPutExecute(r ApiApiV1UsersIdPutRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodPut
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodPut
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UsersAPIService.ApiV1UsersIdPut")
@@ -399,9 +399,9 @@ func (a *UsersAPIService) ApiV1UsersIdPutExecute(r ApiApiV1UsersIdPutRequest) (*
 }
 
 type ApiApiV1UsersPostRequest struct {
-	ctx        context.Context
+	ctx context.Context
 	ApiService *UsersAPIService
-	user       *User
+	user *User
 }
 
 func (r ApiApiV1UsersPostRequest) User(user User) ApiApiV1UsersPostRequest {
@@ -416,22 +416,22 @@ func (r ApiApiV1UsersPostRequest) Execute() (*http.Response, error) {
 /*
 ApiV1UsersPost Method for ApiV1UsersPost
 
-	@param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
-	@return ApiApiV1UsersPostRequest
+ @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
+ @return ApiApiV1UsersPostRequest
 */
 func (a *UsersAPIService) ApiV1UsersPost(ctx context.Context) ApiApiV1UsersPostRequest {
 	return ApiApiV1UsersPostRequest{
 		ApiService: a,
-		ctx:        ctx,
+		ctx: ctx,
 	}
 }
 
 // Execute executes the request
 func (a *UsersAPIService) ApiV1UsersPostExecute(r ApiApiV1UsersPostRequest) (*http.Response, error) {
 	var (
-		localVarHTTPMethod = http.MethodPost
-		localVarPostBody   interface{}
-		formFiles          []formFile
+		localVarHTTPMethod   = http.MethodPost
+		localVarPostBody     interface{}
+		formFiles            []formFile
 	)
 
 	localBasePath, err := a.client.cfg.ServerURLWithContext(r.ctx, "UsersAPIService.ApiV1UsersPost")
