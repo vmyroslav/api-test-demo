@@ -4,8 +4,6 @@ includes:
     hoverfly: ./TasksHoverfly.yml
 
 env:
-  TEST_CONTAINER: faker-api-test-demo-test
-  HOVERFLY_CONTAINER: faker-api-test-demo-hoverfly
   SIMULATION_PATH: ./testdata/hoverfly/
 
 tasks:
