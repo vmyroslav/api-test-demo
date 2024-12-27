@@ -1,22 +1,28 @@
 version: 3
 
 includes:
-    hoverfly: ./TasksHoverfly.yml
+    hoverfly: ./TaskHoverfly.yml
+    internal:
+      taskfile: ./TaskInternal.yml
+      internal: true
 
-env:
-  SIMULATION_PATH: ./testdata/hoverfly/
+# Global configuration
+vars:
+  SIMULATION_DIR: ./testdata/hoverfly/
+  MAX_AGE_DAYS: 7
+  HOVERFLY_PROXY: http://localhost:8500
 
 tasks:
-  test:
-    desc: "Run tests locally"
-    cmds:
-      - go test -race -timeout=30s -v ./...
-      - cd ./client/openapi && go test -race -timeout=30s -v ./...
-
   fumpt:
     desc: Gofumpt project files
     cmds:
       - find . -name '*.go' -type f -exec gofumpt -w {} +
+
+  test:
+    desc: Run tests locally against real API
+    cmds:
+      - go test -race -timeout=30s -v ./...
+      - cd ./client/openapi && go test -race -timeout=30s -v ./...
 
   build:container:
     desc: "Build all docker compose services"
@@ -31,12 +37,12 @@ tasks:
 
   test:local:capture:
     desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
-    deps: [ hoverfly:start ]
+    deps:
+      - hoverfly:start
     env:
-      HTTP_PROXY: http://localhost:8500
-      HTTPS_PROXY: http://localhost:8500
+      HOVERFLY_PROXY: '{{.HOVERFLY_PROXY}}'
     cmds:
-      - task: bootstrap
+      - task: internal:bootstrap
         vars:
           SERVICE: hoverfly
       - task: hoverfly:mode
@@ -45,12 +51,13 @@ tasks:
       - task: test
       - task: hoverfly:export
         vars:
-          SIMULATION_PATH: ./testdata/hoverfly
+          SIMULATION_DIR: '{{.SIMULATION_DIR}}'
           SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
 
   test:local:simulate:
     desc: Run tests locally simulating the API with Hoverfly
-    deps: [ hoverfly:start ]
+    deps:
+      - hoverfly:start
     env:
       HTTP_PROXY: http://localhost:8500
       HTTPS_PROXY: http://localhost:8500
@@ -58,46 +65,23 @@ tasks:
       - task: bootstrap
         vars:
           SERVICE: hoverfly
+      - |
+        # Get the latest simulation file
+        LATEST_SIM=$(task internal:find:latest:simulation SIMULATION_DIR={{.SIMULATION_PATH}})
+        if [ $? -ne 0 ]; then
+          echo "Please run 'task test:local:capture' first"
+          exit 1
+        fi
+        echo "Using simulation file: $LATEST_SIM"
+        SIMULATION_FILE=$(basename "$LATEST_SIM")
       - task: hoverfly:mode
         vars:
           MODE: simulate
       - task: hoverfly:import
         vars:
           SIMULATION_PATH: ./testdata/hoverfly
-          SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
+          SIMULATION_FILE: $SIMULATION_FILE
       - task: test
-
-  bootstrap:
-    desc: Bootstrap a Docker Compose service if it's not running
-    vars:
-      SERVICE: '{{.CLI_ARGS}}'
-    cmds:
-      - |
-        if [ -n "{{.SERVICE}}" ]; then
-          # Check if service exists in docker-compose.yml
-          if ! docker compose config --services | grep -q "^{{.SERVICE}}$"; then
-            echo "Error: Service '{{.SERVICE}}' does not exist in docker-compose.yml"
-            exit 1
-          fi
-
-          # Check if specific service is running
-          if ! docker compose ps --services --filter "status=running" | grep -q "^{{.SERVICE}}$"; then
-            echo "Starting service '{{.SERVICE}}'..."
-            docker compose up --wait -d {{.SERVICE}}
-          else
-            echo "Service '{{.SERVICE}}' is already running"
-          fi
-        else
-          # Check if any services are running
-          if [ -z "$(docker compose ps --services --filter 'status=running')" ]; then
-            echo "Starting all services..."
-            docker compose up --wait -d
-          else
-            echo "Docker Compose services are already running"
-          fi
-        fi
-    silent: true
-    internal: true
 
   test:container:
     desc: Run tests in container against real API

@@ -1,0 +1,76 @@
+version: 3
+
+env:
+  SIMULATION_PATH: ./testdata/hoverfly/
+
+tasks:
+  bootstrap:
+    desc: Bootstrap a Docker Compose service if it's not running
+    vars:
+      SERVICE: '{{.CLI_ARGS}}'
+    cmds:
+      - |
+        if [ -n "{{.SERVICE}}" ]; then
+          # Check if service exists in docker-compose.yml
+          if ! docker compose config --services | grep -q "^{{.SERVICE}}$"; then
+            echo "Error: Service '{{.SERVICE}}' does not exist in docker-compose.yml"
+            exit 1
+          fi
+
+          # Check if specific service is running
+          if ! docker compose ps --services --filter "status=running" | grep -q "^{{.SERVICE}}$"; then
+            echo "Starting service '{{.SERVICE}}'..."
+            docker compose up --wait -d {{.SERVICE}}
+          else
+            echo "Service '{{.SERVICE}}' is already running"
+          fi
+        else
+          # Check if any services are running
+          if [ -z "$(docker compose ps --services --filter 'status=running')" ]; then
+            echo "Starting all services..."
+            docker compose up --wait -d
+          else
+            echo "Docker Compose services are already running"
+          fi
+        fi
+    silent: true
+    internal: true
+
+  find:latest:simulation:
+    desc: Find the latest valid simulation file in the provided directory
+    internal: true
+    silent: true
+    vars:
+      MAX_AGE_DAYS: '{{.MAX_AGE_DAYS}}'
+      SIMULATION_DIR: '{{default "./testdata/hoverfly" .SIMULATION_DIR}}'
+      required:
+        - MAX_AGE_DAYS
+        - SIMULATION_DIR
+    cmds:
+      - |
+        MAX_AGE_SECONDS=$(({{.MAX_AGE_DAYS}} * 24 * 60 * 60))
+        CURRENT_TIME=$(date +%s)
+        LATEST_SIM=""
+        
+        if [ ! -d "{{.SIMULATION_DIR}}" ]; then
+          echo "Error: Simulation directory not found"
+          exit 1
+        fi
+        
+        for file in {{.SIMULATION_DIR}}/*.json; do
+          if [ -f "$file" ]; then
+            FILE_AGE=$((CURRENT_TIME - $(stat -f %m "$file")))
+            if [ $FILE_AGE -le $MAX_AGE_SECONDS ]; then
+              if [ -z "$LATEST_SIM" ] || [ "$file" -nt "$LATEST_SIM" ]; then
+                LATEST_SIM="$file"
+              fi
+            fi
+          fi
+        done
+        
+        if [ -z "$LATEST_SIM" ]; then
+          echo "No valid simulation files found (newer than {{.MAX_AGE_DAYS}} days)"
+          exit 1
+        fi
+        
+        echo "$LATEST_SIM"

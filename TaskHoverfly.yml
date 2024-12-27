@@ -4,7 +4,10 @@ version: 3
 env:
   COMPOSE_SERVICE_NAME: hoverfly
   SIMULATION_PATH: ./testdata/hoverfly/
-  HOVERFLY_PROXY: localhost:8500
+#  HOVERFLY_PROXY: localhost:8500
+
+vars:
+  COMPOSE_SERVICE_NAME: hoverfly
 
 tasks:
   build:
@@ -35,11 +38,12 @@ tasks:
 
   export:
     desc: Export current simulation
-    vars:
-      SIMULATION_PATH: '{{.SIMULATION_PATH | default "./testdata/hoverfly"}}'
-      SIMULATION_FILE: '{{.SIMULATION_FILE | default "simulation"}}'
     cmds:
-      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl export {{.SIMULATION_PATH}}/{{.SIMULATION_FILE}}.json
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl export {{.SIMULATION_DIR}}/{{.SIMULATION_FILE}}.json
+    requires:
+      vars:
+        - SIMULATION_DIR
+        - SIMULATION_FILE
 
   import:
     desc: Import provided simulation
