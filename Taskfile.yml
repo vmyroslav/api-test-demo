@@ -8,9 +8,10 @@ includes:
 
 # Global configuration
 vars:
-  SIMULATION_DIR: ./testdata/hoverfly/
+  SIMULATION_DIR: ./testdata/hoverfly
   MAX_AGE_DAYS: 7
   HOVERFLY_PROXY: http://localhost:8500
+  TEST_CONTAINER: test
 
 tasks:
   fumpt:
@@ -18,22 +19,44 @@ tasks:
     cmds:
       - find . -name '*.go' -type f -exec gofumpt -w {} +
 
-  test:
-    desc: Run tests locally against real API
-    cmds:
-      - go test -race -timeout=30s -v ./...
-      - cd ./client/openapi && go test -race -timeout=30s -v ./...
-
   build:container:
     desc: "Build all docker compose services"
     cmds:
       - docker-compose build
 
+  stop:
+    desc: "Stop all docker compose services"
+    cmds:
+      - docker-compose down
+
   # Test Modes
   test:local:
     desc: Run tests locally against real API
+    deps:
+      - internal:check-gotestsum
     cmds:
-      - go test -v ./...
+      - PATH="$(go env GOPATH)/bin:$PATH" gotestsum
+        --format pkgname
+        --hide-summary=skipped
+        --
+        -json ./...
+        -race
+        -timeout=30s
+
+  test:container:
+    desc: Run tests in container against real API
+    label: Running tests in Docker against real API
+    cmds:
+      - docker-compose run
+        --rm
+        --no-deps
+        {{.TEST_CONTAINER}} gotestsum
+        --format pkgname
+        --hide-summary=skipped
+        --
+        -json ./...
+        -race
+        -timeout=30s
 
   test:local:capture:
     desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
@@ -41,6 +64,9 @@ tasks:
       - hoverfly:start
     env:
       HOVERFLY_PROXY: '{{.HOVERFLY_PROXY}}'
+    vars:
+      TIMESTAMP:
+        sh: date +%Y%m%d_%H%M%S
     cmds:
       - task: internal:bootstrap
         vars:
@@ -48,11 +74,11 @@ tasks:
       - task: hoverfly:mode
         vars:
           MODE: capture
-      - task: test
+      - task: test:local
       - task: hoverfly:export
         vars:
           SIMULATION_DIR: '{{.SIMULATION_DIR}}'
-          SIMULATION_FILE: $(date +%Y%m%d_%H%M%S)
+          SIMULATION_FILE: '{{.TIMESTAMP}}'
 
   test:local:simulate:
     desc: Run tests locally simulating the API with Hoverfly
@@ -83,11 +109,6 @@ tasks:
           SIMULATION_FILE: $SIMULATION_FILE
       - task: test
 
-  test:container:
-    desc: Run tests in container against real API
-    cmds:
-      - docker compose run --rm test go test -v ./...
-
   test:container:proxy:
     desc: Run tests in container through Hoverfly proxy
     deps: [hoverfly:start]
@@ -105,12 +126,16 @@ tasks:
       - docker compose run --rm test go test -v ./...
       - task: hoverfly:export -- $(date +%Y%m%d_%H%M%S)
 
-  # Development Workflow Tasks
-  dev:setup:
-    desc: Initial setup of Hoverfly environment
+  clear:
+    desc: Clear all Hoverfly simulations
+    preconditions:
+      - sh: '[ ! -z "{{.SIMULATION_DIR}}" ]'
+        msg: "SIMULATION_DIR must be set"
+      - sh: '[ -d "{{.SIMULATION_DIR}}" ]'
+        msg: "SIMULATION_DIR must exist and be a directory"
     cmds:
-      - task: hoverfly:init
-      - task: hoverfly:start
+      - find "{{.SIMULATION_DIR}}" -name "*.json" -type f -delete
+    silent: true
 
   dev:capture:
     desc: Clear existing stubs, start capture mode, and run tests

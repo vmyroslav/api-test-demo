@@ -4,6 +4,14 @@ env:
   SIMULATION_PATH: ./testdata/hoverfly/
 
 tasks:
+  check-gotestsum:
+    desc: Check if gotestsum is installed and install it if not
+    internal: true
+    cmds:
+      - which gotestsum || go install gotest.tools/gotestsum@latest
+    status:
+      - which gotestsum
+
   bootstrap:
     desc: Bootstrap a Docker Compose service if it's not running
     vars:
