@@ -4,13 +4,13 @@ includes:
     hoverfly: ./TaskHoverfly.yml
     internal:
       taskfile: ./TaskInternal.yml
-      internal: true
+#      internal: true
 
 # Global configuration
 vars:
   SIMULATION_DIR: ./testdata/hoverfly
   MAX_AGE_DAYS: 7
-  HOVERFLY_PROXY: http://localhost:8500
+#  HOVERFLY_PROXY: http://localhost:8500
   TEST_CONTAINER: test
 
 tasks:
@@ -31,7 +31,9 @@ tasks:
 
   # Test Modes
   test:local:
-    desc: Run tests locally against real API
+    desc: |
+      Run tests on local machine. 
+      Optionally use Hoverfly for simulation by setting HOVERFLY_PROXY environment variable.
     deps:
       - internal:check-gotestsum
     cmds:
@@ -42,6 +44,9 @@ tasks:
         -json ./...
         -race
         -timeout=30s
+        -count=1
+    env:
+      HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
 
   test:container:
     desc: Run tests in container against real API
@@ -50,6 +55,7 @@ tasks:
       - docker-compose run
         --rm
         --no-deps
+        -e HOVERFLY_PROXY={{.HOVERFLY_PROXY | default ""}}
         {{.TEST_CONTAINER}} gotestsum
         --format pkgname
         --hide-summary=skipped
@@ -57,24 +63,26 @@ tasks:
         -json ./...
         -race
         -timeout=30s
+        -count=1
 
   test:local:capture:
     desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
-    deps:
-      - hoverfly:start
     env:
       HOVERFLY_PROXY: '{{.HOVERFLY_PROXY}}'
     vars:
       TIMESTAMP:
         sh: date +%Y%m%d_%H%M%S
     cmds:
+      - defer: {task: hoverfly:stop}
       - task: internal:bootstrap
         vars:
-          SERVICE: hoverfly
+          CLI_ARGS: hoverfly
       - task: hoverfly:mode
         vars:
           MODE: capture
       - task: test:local
+        vars:
+          HOVERFLY_PROXY: "localhost:8500"
       - task: hoverfly:export
         vars:
           SIMULATION_DIR: '{{.SIMULATION_DIR}}'
@@ -83,38 +91,31 @@ tasks:
   test:local:simulate:
     desc: Run tests locally simulating the API with Hoverfly
     deps:
-      - hoverfly:start
-    env:
-      HTTP_PROXY: http://localhost:8500
-      HTTPS_PROXY: http://localhost:8500
-    cmds:
-      - task: bootstrap
+      - task: internal:bootstrap
         vars:
-          SERVICE: hoverfly
-      - |
-        # Get the latest simulation file
-        LATEST_SIM=$(task internal:find:latest:simulation SIMULATION_DIR={{.SIMULATION_PATH}})
-        if [ $? -ne 0 ]; then
-          echo "Please run 'task test:local:capture' first"
-          exit 1
-        fi
-        echo "Using simulation file: $LATEST_SIM"
-        SIMULATION_FILE=$(basename "$LATEST_SIM")
+          CLI_ARGS: hoverfly
+    vars:
+      LATEST_SIM:
+        sh: |
+          if ! SIM=$(task internal:find:latest:simulation SIMULATION_DIR={{.SIMULATION_DIR}} MAX_AGE_DAYS={{.MAX_AGE_DAYS}}); then
+            echo ""  # Return empty string if subtask fails
+          else
+            echo "$SIM"
+          fi
+    cmds:
       - task: hoverfly:mode
         vars:
           MODE: simulate
       - task: hoverfly:import
         vars:
-          SIMULATION_PATH: ./testdata/hoverfly
-          SIMULATION_FILE: $SIMULATION_FILE
-      - task: test
-
-  test:container:proxy:
-    desc: Run tests in container through Hoverfly proxy
-    deps: [hoverfly:start]
-    cmds:
-      - task: hoverfly:mode -- simulate
-      - docker compose run --rm test go test -v ./...
+          SIMULATION_FILE: '{{.LATEST_SIM}}'
+      - task: test:local
+        vars:
+          USE_HOVERFLY: "true"
+          HOVERFLY_PROXY: "localhost:8500"
+    preconditions:
+      - sh: '[ -f "{{.LATEST_SIM}}" ]'
+        msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
 
   test:container:capture:
     desc: Run tests in container in capture mode

@@ -60,10 +60,3 @@ services:
     volumes:
       - .:/app
     working_dir: /app
-#    environment:
-#      - HTTP_PROXY=http://hoverfly:8500
-#      - HTTPS_PROXY=http://hoverfly:8500
-#      - CAPTURE_MODE=${CAPTURE_MODE:-false}
-    depends_on:
-      hoverfly:
-        condition: service_healthy

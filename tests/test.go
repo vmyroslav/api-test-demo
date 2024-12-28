@@ -9,13 +9,17 @@ import (
 	"time"
 )
 
-func NewHttpClient(t testing.TB) *http.Client {
+func NewHttpClient(t *testing.T) *http.Client {
 	t.Helper()
 
-	hoverflyAddr, ok := os.LookupEnv("HOVERFLY_PROXY")
-	if !ok {
+	hoverflyAddr := os.Getenv("HOVERFLY_PROXY")
+	if hoverflyAddr == "" {
 		return http.DefaultClient
 	}
+
+	// We will run tests in parallel only if we are using Hoverfly.
+	// Just to avoid redundant load for public API.
+	t.Parallel()
 
 	client := &http.Client{
 		Timeout: 5 * time.Second,
@@ -38,10 +42,6 @@ func HostURL() string {
 }
 
 // ToPtr converts a value of any type to a pointer.
-// Example:
-//
-//	numPtr := ToPtr(42)      // *int
-//	strPtr := ToPtr("hello") // *string
 func ToPtr[T any](v T) *T {
 	return &v
 }

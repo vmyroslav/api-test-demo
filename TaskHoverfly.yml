@@ -25,17 +25,6 @@ tasks:
     cmds:
       - docker compose stop {{.COMPOSE_SERVICE_NAME}}
 
-  clear:
-    desc: Clear Hoverfly simulations
-    preconditions:
-      - sh: "[ ! -z '$SIMULATION_PATH' ]"
-        msg: "SIMULATION_PATH must be set"
-      - sh: "[ -d '$SIMULATION_PATH' ]"
-        msg: "SIMULATION_PATH must exist and be a directory"
-    cmds:
-      - find "${SIMULATION_PATH:?Must be set}" -name "*.json" -type f -delete
-    silent: true
-
   export:
     desc: Export current simulation
     cmds:
@@ -47,11 +36,11 @@ tasks:
 
   import:
     desc: Import provided simulation
-    vars:
-      SIMULATION_PATH: '{{.SIMULATION_PATH | default "./testdata/hoverfly"}}'
-      SIMULATION_FILE: '{{.SIMULATION_FILE | default "simulation"}}'
     cmds:
-      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl import {{.SIMULATION_PATH}}/{{.SIMULATION_FILE}}.json
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl import {{.SIMULATION_FILE}}
+    requires:
+      vars:
+        - SIMULATION_FILE
 
   import-last:
     desc: Import last simulation

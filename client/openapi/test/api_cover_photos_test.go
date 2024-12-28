@@ -11,6 +11,7 @@ package openapi
 
 import (
 	"context"
+	"github.com/vmyroslav/api-test-demo/tests"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,7 @@ import (
 func Test_openapi_CoverPhotosAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	apiClient := openapiclient.NewAPIClient(configuration)
+	configuration.HTTPClient = tests.NewHttpClient(t)
 
 	t.Run("Test CoverPhotosAPIService ApiV1CoverPhotosBooksCoversIdBookGet", func(t *testing.T) {
 		t.Skip("skip test") // remove to run test

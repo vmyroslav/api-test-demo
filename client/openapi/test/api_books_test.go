@@ -11,6 +11,7 @@ package openapi
 
 import (
 	"context"
+	"github.com/vmyroslav/api-test-demo/tests"
 	"testing"
 	"time"
 
@@ -23,6 +24,7 @@ func Test_openapi_BooksAPIService(t *testing.T) {
 	configuration := openapiclient.NewConfiguration()
 	configuration.Host = "fakerestapi.azurewebsites.net"
 	configuration.Scheme = "https"
+	configuration.HTTPClient = tests.NewHttpClient(t)
 	apiClient := openapiclient.NewAPIClient(configuration)
 
 	t.Run("Test BooksAPIService ApiV1BooksGet", func(t *testing.T) {

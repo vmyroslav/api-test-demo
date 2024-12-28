@@ -11,6 +11,7 @@ package openapi
 
 import (
 	"context"
+	"github.com/vmyroslav/api-test-demo/tests"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,6 +25,7 @@ func Test_openapi_AuthorsAPIService(t *testing.T) {
 
 	configuration.Host = "fakerestapi.azurewebsites.net"
 	configuration.Scheme = "https"
+	configuration.HTTPClient = tests.NewHttpClient(t)
 
 	t.Run("Test AuthorsAPIService ApiV1AuthorsAuthorsBooksIdBookGet", func(t *testing.T) {
 		t.Skip("skip test") // remove to run test

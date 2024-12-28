@@ -2,10 +2,11 @@ package oapi
 
 import (
 	"context"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
-
 	"github.com/vmyroslav/api-test-demo/tests"
+	"testing"
+	"time"
 )
 
 const baseURL = "https://fakerestapi.azurewebsites.net"
@@ -36,26 +37,23 @@ func TestActivities(t *testing.T) {
 					t.Fatalf("getting activity: %v", err)
 				}
 
-				if activity.ApplicationjsonV10200 == nil {
-					t.Fatal("expected activity, got nil")
-				}
+				require.NotNil(t, activity.ApplicationjsonV10200, "expected activity, got nil")
+				require.NotNil(t, activity.ApplicationjsonV10200.Id, "expected ID, got nil")
 
-				if activity.ApplicationjsonV10200.Id == nil || *activity.ApplicationjsonV10200.Id != 1 {
-					t.Errorf("expected ID 1, got %v", activity.ApplicationjsonV10200.Id)
-				}
-
-				if activity.ApplicationjsonV10200.Title == nil || *activity.ApplicationjsonV10200.Title == "" {
-					t.Error("expected non-empty title")
-				}
+				assert.Equal(t, int32(1), *activity.ApplicationjsonV10200.Id)
+				assert.NotEmpty(t, *activity.ApplicationjsonV10200.Title, "expected non-empty title")
 			},
 		},
 	}
 
 	client := setupClient(t)
 
+	//measure time for each test
 	for _, tt := range scenarios {
 		t.Run(tt.name, func(t *testing.T) {
+			now := time.Now()
 			tt.testFunc(t, client)
+			t.Logf("test %s took %v", tt.name, time.Since(now))
 		})
 	}
 }
