@@ -64,7 +64,7 @@ tasks:
   process-simulation:
     desc: Process captured simulation to handle random data
     cmds:
-      - go run ./tools/*.go -file {{.SIMULATION_FILE}}
+      - go run ./tools/processor/*.go -file {{.SIMULATION_FILE}}
     requires:
       vars:
         - SIMULATION_FILE
