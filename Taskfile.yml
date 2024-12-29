@@ -12,6 +12,7 @@ vars:
   MAX_AGE_DAYS: 7
 #  HOVERFLY_PROXY: http://localhost:8500
   TEST_CONTAINER: test
+  HOVERFLY_CONTAINER: api-test-demo-hoverfly
 
 tasks:
   fumpt:
@@ -102,6 +103,9 @@ tasks:
           else
             echo "$SIM"
           fi
+    preconditions:
+      - sh: '[ -f "{{.LATEST_SIM}}" ]'
+        msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
     cmds:
       - task: hoverfly:mode
         vars:
@@ -113,9 +117,6 @@ tasks:
         vars:
           USE_HOVERFLY: "true"
           HOVERFLY_PROXY: "localhost:8500"
-    preconditions:
-      - sh: '[ -f "{{.LATEST_SIM}}" ]'
-        msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
 
   test:container:capture:
     desc: Run tests in container in capture mode
@@ -139,21 +140,24 @@ tasks:
     silent: true
 
   dev:capture:
-    desc: Clear existing stubs, start capture mode, and run tests
+    desc: Start Hoverfly in capture mode
     cmds:
-      - task: hoverfly:clear
-      - task: test:local:capture
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: capture
 
-  dev:verify:
-    desc: Verify captured stubs work by running tests through proxy
+  dev:simulate:
+    desc: Start Hoverfly in simulate mode and import latest simulation
     cmds:
-      - task: test:local:proxy
-
-  dev:clean:
-    desc: Clean up all test artifacts and containers
-    cmds:
-      - task: hoverfly:stop
-      - task: hoverfly:clear
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: simulate
 
   # Client Generation Tasks
   generate:oapi:

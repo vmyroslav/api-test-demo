@@ -11,8 +11,9 @@ package openapi
 
 import (
 	"context"
-	"github.com/vmyroslav/api-test-demo/tests"
 	"testing"
+
+	"github.com/vmyroslav/api-test-demo/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

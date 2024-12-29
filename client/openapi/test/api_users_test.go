@@ -56,7 +56,6 @@ func Test_openapi_UsersAPIService(t *testing.T) {
 
 		require.Nil(t, err)
 		assert.Equal(t, 200, httpRes.StatusCode)
-
 	})
 
 	t.Run("Test UsersAPIService ApiV1UsersIdPut", func(t *testing.T) {
