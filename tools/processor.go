@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 // Matcher represents a Hoverfly matcher
@@ -63,62 +64,58 @@ func ProcessSimulation(inputPath, outputPath string) error {
 		return err
 	}
 
-	// Keep track of counters for each endpoint
-	endpointCounters := make(map[string]int)
-
 	// Process each request-response pair
 	for i := range simulation.Data.Pairs {
 		pair := &simulation.Data.Pairs[i]
 
-		// Get or create counter for this endpoint
-		endpoint := fmt.Sprintf("%s-%s",
-			pair.Request.Path[0].Value,
-			pair.Request.Method[0].Value)
-		endpointCounters[endpoint]++
-		counter := endpointCounters[endpoint]
-
-		// Process request bodies with random strings and timestamps
+		// Check if request body contains our patterns
 		if len(pair.Request.Body) > 0 && pair.Request.Body[0].Value != "" {
 			requestBody := pair.Request.Body[0].Value
 
-			// Create a glob pattern for the entire request
-			if strings.Contains(requestBody, "fake-api-test") {
-				// Replace exact random strings with glob pattern, including the counter
-				re := regexp.MustCompile(`"(fake-api-test-[^"]*-title-)[a-zA-Z0-9]{5}"`)
-				requestBody = re.ReplaceAllString(requestBody, fmt.Sprintf(`"$1*_%d"`, counter))
+			// Only process if body contains our patterns
+			if strings.Contains(requestBody, "fake-api-test") || containsTimePattern(requestBody) {
+				var requestData map[string]interface{}
+				if err := json.Unmarshal([]byte(requestBody), &requestData); err == nil {
+					modifiedFields := make(map[string]bool)
 
-				// Replace timestamps if present
-				timeRe := regexp.MustCompile(`"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2}))"`)
-				if timeRe.MatchString(requestBody) {
-					requestBody = timeRe.ReplaceAllString(requestBody, `"*"`)
-				}
+					// Process each field in the request
+					for field, value := range requestData {
+						if strVal, ok := value.(string); ok {
+							// Handle fake-api-test pattern
+							if strings.Contains(strVal, "fake-api-test") {
+								requestData[field] = strings.Replace(strVal, strVal[len(strVal)-5:], "*", 1)
+								modifiedFields[field] = true
+							}
+							// Handle timestamp pattern
+							if isTimeFormat(strVal) {
+								requestData[field] = "*"
+								modifiedFields[field] = true
+							}
+						}
+					}
 
-				// Update the request matcher
-				pair.Request.Body[0].Value = requestBody
-				pair.Request.Body[0].Matcher = "glob"
+					if len(modifiedFields) > 0 {
+						// Update request body with glob pattern
+						if newBody, err := json.Marshal(requestData); err == nil {
+							pair.Request.Body[0].Value = string(newBody)
+							pair.Request.Body[0].Matcher = "glob"
 
-				// Process response for 200 status with JSON body
-				if pair.Response.Status == 200 && strings.Contains(pair.Response.Body, "{") {
-					var respData map[string]interface{}
-					if err := json.Unmarshal([]byte(pair.Response.Body), &respData); err == nil {
-						// Update response fields with request values
-						if _, ok := respData["title"]; ok {
-							respData["title"] = "{{ Request.Body 'jsonpath' '$.title' }}"
-						}
-						if _, ok := respData["dueDate"]; ok {
-							respData["dueDate"] = "{{ Request.Body 'jsonpath' '$.dueDate' }}"
-						}
-						if _, ok := respData["firstName"]; ok {
-							respData["firstName"] = "{{ Request.Body 'jsonpath' '$.firstName' }}"
-						}
-						if _, ok := respData["lastName"]; ok {
-							respData["lastName"] = "{{ Request.Body 'jsonpath' '$.lastName' }}"
-						}
-
-						// Marshal the modified response body
-						if newRespBody, err := json.Marshal(respData); err == nil {
-							pair.Response.Body = string(newRespBody)
-							pair.Response.Templated = true
+							// Only template the response if we modified the request
+							if pair.Response.Status == 200 && strings.Contains(pair.Response.Body, "{") {
+								var respData map[string]interface{}
+								if err := json.Unmarshal([]byte(pair.Response.Body), &respData); err == nil {
+									// Template only the fields that were modified in request
+									for field := range modifiedFields {
+										if _, exists := respData[field]; exists {
+											respData[field] = fmt.Sprintf("{{ Request.Body 'jsonpath' '$.%s' }}", field)
+										}
+									}
+									if newRespBody, err := json.Marshal(respData); err == nil {
+										pair.Response.Body = string(newRespBody)
+										pair.Response.Templated = true
+									}
+								}
+							}
 						}
 					}
 				}
@@ -126,16 +123,61 @@ func ProcessSimulation(inputPath, outputPath string) error {
 		}
 	}
 
-	// Add template matchers if they don't exist
+	// Add template matchers
 	if simulation.Meta.Templates == nil {
 		simulation.Meta.Templates = make(map[string]string)
 	}
 	simulation.Meta.Templates["timestamp"] = "2006-01-02T15:04:05Z07:00"
+
+	// Remove duplicates
+	uniquePairs := make([]Pair, 0)
+	seen := make(map[string]bool)
+
+	for _, pair := range simulation.Data.Pairs {
+		key := createRequestSignature(pair.Request)
+		if !seen[key] {
+			seen[key] = true
+			uniquePairs = append(uniquePairs, pair)
+		}
+	}
+
+	simulation.Data.Pairs = uniquePairs
 
 	output, err := json.MarshalIndent(simulation, "", "  ")
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(outputPath, output, 0o644)
+	return os.WriteFile(outputPath, output, 0644)
+}
+
+func containsTimePattern(s string) bool {
+	timePattern := regexp.MustCompile(`"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})"`)
+	return timePattern.MatchString(s)
+}
+
+func isTimeFormat(s string) bool {
+	_, err := time.Parse(time.RFC3339, s)
+	return err == nil
+}
+
+func createRequestSignature(req Request) string {
+	var sig strings.Builder
+
+	// Add method
+	if len(req.Method) > 0 {
+		sig.WriteString("method:" + req.Method[0].Value + ";")
+	}
+
+	// Add path
+	if len(req.Path) > 0 {
+		sig.WriteString("path:" + req.Path[0].Value + ";")
+	}
+
+	// Add body if exists
+	if len(req.Body) > 0 && req.Body[0].Value != "" {
+		sig.WriteString("body:" + req.Body[0].Value + ";")
+	}
+
+	return sig.String()
 }
