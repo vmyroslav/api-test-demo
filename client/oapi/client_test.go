@@ -208,6 +208,7 @@ func TestAuthors(t *testing.T) {
 				)
 				require.NoError(t, err)
 				require.NotNil(t, resp, "expected resp, got nil")
+				require.NotNil(t, resp.ApplicationjsonV10200, "expected resp body, got nil")
 
 				assert.Equal(t, http.StatusOK, resp.StatusCode())
 				assert.Equal(t, id, *resp.ApplicationjsonV10200.Id)

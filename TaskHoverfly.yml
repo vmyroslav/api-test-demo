@@ -60,3 +60,11 @@ tasks:
     desc: Show Hoverfly logs
     cmds:
       - docker compose logs {{.COMPOSE_SERVICE_NAME}}
+
+  process-simulation:
+    desc: Process captured simulation to handle random data
+    cmds:
+      - go run ./tools/*.go -file {{.SIMULATION_FILE}}
+    requires:
+      vars:
+        - SIMULATION_FILE

@@ -88,6 +88,9 @@ tasks:
         vars:
           SIMULATION_DIR: '{{.SIMULATION_DIR}}'
           SIMULATION_FILE: '{{.TIMESTAMP}}'
+      - task: hoverfly:process-simulation
+        vars:
+          SIMULATION_FILE: '{{.SIMULATION_FILE}}'
 
   test:local:simulate:
     desc: Run tests locally simulating the API with Hoverfly
