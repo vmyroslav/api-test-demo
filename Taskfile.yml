@@ -11,8 +11,10 @@ vars:
   SIMULATION_DIR: ./testdata/hoverfly
   MAX_AGE_DAYS: 7
 #  HOVERFLY_PROXY: http://localhost:8500
-  TEST_CONTAINER: test
-  HOVERFLY_CONTAINER: api-test-demo-hoverfly
+  TEST_SERVICE: test
+  HOVERFLY_SERVICE: api-test-demo-hoverfly
+  OAPI_GENERATOR_SERVICE: oapi-generator
+  OPENAPI_GENERATOR_SERVICE: openapi-generator
 
 tasks:
   fumpt:
@@ -34,7 +36,7 @@ tasks:
   test:local:
     desc: |
       Run tests on local machine. 
-      Optionally use Hoverfly for simulation by setting HOVERFLY_PROXY environment variable.
+      Optionally use Hoverfly for simulation or capturing by setting HOVERFLY_PROXY environment variable.
     deps:
       - internal:check-gotestsum
     cmds:
@@ -51,13 +53,12 @@ tasks:
 
   test:container:
     desc: Run tests in container against real API
-    label: Running tests in Docker against real API
     cmds:
       - docker-compose run
         --rm
         --no-deps
-        -e HOVERFLY_PROXY={{.HOVERFLY_PROXY | default ""}}
-        {{.TEST_CONTAINER}} gotestsum
+        -e HOVERFLY_PROXY={{.HOVERFLY_PROXY}}
+        {{.TEST_SERVICE}} gotestsum
         --format pkgname
         --hide-summary=skipped
         --
@@ -65,6 +66,8 @@ tasks:
         -race
         -timeout=30s
         -count=1
+    env:
+      HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
 
   test:local:capture:
     desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
@@ -92,6 +95,7 @@ tasks:
         vars:
           SIMULATION_FILE:
             sh: task internal:find:latest:simulation SIMULATION_DIR={{.SIMULATION_DIR}} MAX_AGE_DAYS={{.MAX_AGE_DAYS}}
+          PROCESSOR: "default"
 
   test:local:simulate:
     desc: Run tests locally simulating the API with Hoverfly
@@ -132,6 +136,53 @@ tasks:
       - docker compose run --rm test go test -v ./...
       - task: hoverfly:export -- $(date +%Y%m%d_%H%M%S)
 
+  dev:capture:
+    desc: |
+      Start Hoverfly in capture mode. 
+      Note: the simulation will not be saved automatically. 
+      Please run 'task hoverfly:export' after running your workflow to save the simulation.
+    cmds:
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: capture
+
+  dev:simulate:
+    desc: Start Hoverfly in simulate mode and import latest simulation
+    vars:
+      LATEST_SIM:
+        sh: |
+          if ! SIM=$(task internal:find:latest:simulation SIMULATION_DIR={{.SIMULATION_DIR}} MAX_AGE_DAYS={{.MAX_AGE_DAYS}}); then
+            echo ""  # Return empty string if subtask fails
+          else
+            echo "$SIM"
+          fi
+    preconditions:
+      - sh: '[ -f "{{.LATEST_SIM}}" ]'
+        msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
+    cmds:
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: simulate
+      - task: hoverfly:import
+        vars:
+          SIMULATION_FILE: '{{.LATEST_SIM}}'
+
+  dev:spy:
+    desc: Start Hoverfly in spy mode
+    cmds:
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: spy
+
   clear:
     desc: Clear all Hoverfly simulations
     preconditions:
@@ -143,34 +194,14 @@ tasks:
       - find "{{.SIMULATION_DIR}}" -name "*.json" -type f -delete
     silent: true
 
-  dev:capture:
-    desc: Start Hoverfly in capture mode
-    cmds:
-      - task: bootstrap
-        vars:
-            CLI_ARGS: hoverfly
-      - task: hoverfly:mode
-        vars:
-          MODE: capture
-
-  dev:simulate:
-    desc: Start Hoverfly in simulate mode and import latest simulation
-    cmds:
-      - task: bootstrap
-        vars:
-            CLI_ARGS: hoverfly
-      - task: hoverfly:mode
-        vars:
-          MODE: simulate
-
   # Client Generation Tasks
   generate:oapi:
     desc: "Generate the HTTP client using oapi-codegen"
     cmds:
-      - docker-compose run --rm oapi-generator
+      - docker-compose run --rm {{.OAPI_GENERATOR_SERVICE}}
 
   generate:openapi:
     desc: "Generate the HTTP client using OpenAPI Generator"
     cmds:
-      - docker-compose run --rm openapi-generator
+      - docker-compose run --rm {{.OPENAPI_GENERATOR_SERVICE}}
       - cd ./client/openapi && gofmt -w .

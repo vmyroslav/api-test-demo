@@ -148,7 +148,7 @@ func ProcessSimulation(inputPath, outputPath string) error {
 		return err
 	}
 
-	return os.WriteFile(outputPath, output, 0644)
+	return os.WriteFile(outputPath, output, 0o644)
 }
 
 func containsTimePattern(s string) bool {
