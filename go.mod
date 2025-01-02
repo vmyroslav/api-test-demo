@@ -3,6 +3,7 @@ module github.com/vmyroslav/api-test-demo
 go 1.23
 
 require (
+	github.com/SpectoLabs/hoverfly v1.10.7
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/stretchr/testify v1.9.0
 )
@@ -10,7 +11,6 @@ require (
 require (
 	github.com/ChrisTrenkamp/xsel v0.9.16 // indirect
 	github.com/SpectoLabs/goxml2json v0.0.0-20240121223617-8e03292c14ea // indirect
-	github.com/SpectoLabs/hoverfly v1.10.7 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/beevik/etree v1.4.1 // indirect
 	github.com/boltdb/bolt v1.3.1 // indirect
@@ -22,6 +22,7 @@ require (
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
+	github.com/kr/pretty v0.3.1 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect

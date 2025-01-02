@@ -11,10 +11,12 @@ import (
 
 func processJSONResponse(view hoverfly.RequestResponsePairViewV1) {
 	body := view.GetResponse().GetBody()
-	slog.Info(body, "response Body")
+	slog.Info("response Body", "body", body)
 }
 
-var isJSONOutput bool
+var (
+	isJSONOutput bool
+)
 
 func init() {
 	flag.BoolVar(&isJSONOutput, "json", false, "Output JSON")
@@ -24,12 +26,21 @@ func main() {
 
 	flag.Parse()
 	if isJSONOutput {
-		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
+		slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)).WithGroup("middleware"))
 	}
+
+	slog.Info("Hoverfly middleware started")
 
 	s := bufio.NewScanner(os.Stdin)
 
+	processResponse := os.Getenv("PROCESS_RESPONSE") == "true"
+
 	for s.Scan() {
+		// If client don't want to process responses - infinite loop
+		if !processResponse {
+			os.Stdout.Write(s.Bytes())
+			continue
+		}
 
 		var payload hoverfly.RequestResponsePairViewV1
 

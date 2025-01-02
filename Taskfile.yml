@@ -73,6 +73,7 @@ tasks:
     desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
     env:
       HOVERFLY_PROXY: '{{.HOVERFLY_PROXY}}'
+      PROCESS_RESPONSE: true
     vars:
       TIMESTAMP:
         sh: date +%Y%m%d_%H%M%S
