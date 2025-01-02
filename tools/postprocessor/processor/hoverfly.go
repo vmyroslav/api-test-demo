@@ -1,4 +1,4 @@
-package main
+package processor
 
 // Matcher represents a Hoverfly matcher
 type Matcher struct {
