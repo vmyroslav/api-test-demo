@@ -1,5 +1,26 @@
-FROM alpine:3.21.0
+# build middleware
+FROM golang:1.23 as middleware_build
 
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the go.mod and go.sum files and download dependencies
+COPY go.mod go.sum* ./
+
+
+RUN go mod download
+
+# Copy the rest of the application source code
+COPY ../. .
+
+# add tests
+
+# RUN go test ./... -race {path to hoverfly}
+
+ENV CGO_ENABLED=0
+RUN go build -o /bin/middleware ./tools/hoverfly/*.go
+
+FROM alpine:3.21.0
 # Packages
 RUN apk add --no-cache wget unzip curl
 
@@ -28,6 +49,10 @@ RUN mkdir -p /root/.hoverfly && \
 
 EXPOSE ${HOVERFLY_PROXY_PORT} ${HOVERFLY_ADMIN_PORT}
 
-ENTRYPOINT ["hoverfly", "-listen-on-host=0.0.0.0"]
+# Add binary middleware
+# Stores at /bin/middleware
+COPY --from=middleware_build /bin/middleware /bin/middleware
+
+ENTRYPOINT ["hoverfly", "-listen-on-host=0.0.0.0", "-middleware", "/bin/middleware"]
 
 CMD [""]
