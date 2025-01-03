@@ -7,6 +7,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+
+	"github.com/vmyroslav/api-test-demo/tools/postprocessor/processor"
 )
 
 // ProcessorType is a custom type for processor options
@@ -22,7 +24,7 @@ func main() {
 
 	var (
 		inputFile     string
-		processor     PostProcessor
+		proc          processor.PostProcessor
 		processorType ProcessorType = NullProcessorType
 	)
 
@@ -43,7 +45,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	var simulation Simulation
+	var simulation processor.Simulation
 	if err = json.Unmarshal(data, &simulation); err != nil {
 		slog.Error("Error unmarshaling simulation", "err", err)
 		os.Exit(1)
@@ -52,16 +54,16 @@ func main() {
 	// Select the processor based on the flag
 	switch processorType {
 	case DefaultProcessorType:
-		processor = NewDefaultProcessor()
+		proc = processor.NewDefaultProcessor()
 	case NullProcessorType:
-		processor = &NullProcessor{}
+		proc = &processor.NullProcessor{}
 	default:
 		slog.Error("Unknown processor type", "type", processorType)
 		os.Exit(1)
 	}
 
 	// Process the simulation
-	if err = processor.Process(&simulation); err != nil {
+	if err = proc.Process(&simulation); err != nil {
 		slog.Error("Error processing simulation", "err", err)
 		os.Exit(1)
 	}

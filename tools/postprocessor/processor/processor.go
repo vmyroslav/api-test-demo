@@ -1,4 +1,4 @@
-package main
+package processor
 
 import (
 	"encoding/json"
@@ -133,6 +133,6 @@ func (p *DefaultProcessor) processJSONBody(body string) (string, map[string]bool
 
 type NullProcessor struct{}
 
-func (p *NullProcessor) Process(simulation *Simulation) error {
+func (p *NullProcessor) Process(_ *Simulation) error {
 	return nil
 }

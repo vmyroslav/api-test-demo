@@ -35,8 +35,8 @@ tasks:
   # Test Modes
   test:local:
     desc: |
-      Run tests on local machine. 
-      Optionally use Hoverfly for simulation or capturing by setting HOVERFLY_PROXY environment variable.
+      Run all tests on local machine. By default, tests are run against real API.
+      Optionally use Hoverfly for simulation or capturing by setting HOVERFLY_PROXY environment variable and running hoverfly service.
     deps:
       - internal:check-gotestsum
     cmds:
@@ -52,7 +52,7 @@ tasks:
       HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
 
   test:container:
-    desc: Run tests in container against real API
+    desc: Run all tests in container. By default, tests are run against real API.
     cmds:
       - docker-compose run
         --rm
