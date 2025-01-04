@@ -1,0 +1,23 @@
+version: 0
+
+routes:
+  # indicates route pattern
+  # problem:
+  # - how we can extract {id} value
+  # - do we need to extract it?
+  # - do we need specify if it is a uuid or a number or some other id
+  /api/v1/Activities/{id}:
+    # for now - omitted, as I don't know if we should specify content type
+    # content:
+    # application/json
+
+    # method of the endpoint, shouldn't be changed, as different methods has different response bodies
+    GET:
+      # Could change over time!
+      # for now fields - as a templating on what fields we want to change or template
+      # possible changes:
+      # - add requestBody and responseBody and probably headers or smth else -
+      # as it allows us to modify them (f.e. Operation-ID or Operation-Link).
+      #
+      fields:
+        dueDate: $time
