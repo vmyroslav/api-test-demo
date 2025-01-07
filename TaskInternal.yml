@@ -1,0 +1,92 @@
+version: 3
+
+env:
+  SIMULATION_PATH: ./testdata/hoverfly/
+
+tasks:
+  check-gotestsum:
+    desc: Check if gotestsum is installed and install it if not
+    internal: true
+    cmds:
+      - which gotestsum || go install gotest.tools/gotestsum@latest
+    status:
+      - which gotestsum
+
+  bootstrap:
+    desc: Bootstrap a Docker Compose service if it's not running
+    vars:
+      SERVICE: '{{.CLI_ARGS}}'
+    cmds:
+      - |
+        if [ -n "{{.SERVICE}}" ]; then
+          # Check if service exists in docker-compose.yml
+          if ! docker compose config --services | grep -q "^{{.SERVICE}}$"; then
+            echo "Error: Service '{{.SERVICE}}' does not exist in docker-compose.yml"
+            exit 1
+          fi
+
+          # Check if specific service is running
+          if ! docker compose ps --services --filter "status=running" | grep -q "^{{.SERVICE}}$"; then
+            echo "Starting service '{{.SERVICE}}'..."
+            docker compose up --wait -d {{.SERVICE}}
+          else
+            echo "Service '{{.SERVICE}}' is already running"
+          fi
+        else
+          # Check if any services are running
+          if [ -z "$(docker compose ps --services --filter 'status=running')" ]; then
+            echo "Starting all services..."
+            docker compose up --wait -d
+          else
+            echo "Docker Compose services are already running"
+          fi
+        fi
+    silent: true
+    internal: true
+
+  find:latest:simulation:
+    desc: Find the latest valid simulation file in the provided directory
+    internal: false
+    silent: true
+    vars:
+      MAX_AGE_DAYS: '{{.EXPIRED_AFTER_DAYS}}'
+      SIMULATIONS_DIR: '{{default "./testdata/hoverfly" .SIMULATIONS_DIR}}'
+      required:
+        - MAX_AGE_DAYS
+        - SIMULATIONS_DIR
+    cmds:
+      - |
+        MAX_AGE_SECONDS=$(({{.MAX_AGE_DAYS}} * 24 * 60 * 60))
+        CURRENT_TIME=$(date +%s)
+        LATEST_SIM=""
+        
+        if [ ! -d "{{.SIMULATIONS_DIR}}" ]; then
+          echo "Error: Simulation directory not found"
+          exit 1
+        fi
+        
+        # First check if there are any json files at all
+        json_count=$(find "{{.SIMULATIONS_DIR}}" -name "*.json" -type f | wc -l)
+        if [ "$json_count" -eq 0 ]; then
+          echo "Error: No simulation files found in '{{.SIMULATIONS_DIR}}'"
+          echo "Please run 'task test:local:capture' first to generate simulation files"
+          exit 1
+        fi
+        
+        for file in {{.SIMULATIONS_DIR}}/*.json; do
+          if [ -f "$file" ]; then
+            FILE_AGE=$((CURRENT_TIME - $(stat -f %m "$file")))
+            if [ $FILE_AGE -le $MAX_AGE_SECONDS ]; then
+              if [ -z "$LATEST_SIM" ] || [ "$file" -nt "$LATEST_SIM" ]; then
+                LATEST_SIM="$file"
+              fi
+            fi
+          fi
+        done
+        
+        if [ -z "$LATEST_SIM" ]; then
+          echo "No valid simulation files found (newer than {{.MAX_AGE_DAYS}} days)"
+          exit 1
+        fi
+        
+        echo "$LATEST_SIM"

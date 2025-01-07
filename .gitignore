@@ -1,2 +1,4 @@
 *.iml
 vendor/
+
+testdata/hoverfly/*.json

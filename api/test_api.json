@@ -4,6 +4,12 @@
     "title": "FakeRESTApi.Web V1",
     "version": "v1"
   },
+  "servers": [
+    {
+      "url": "https://fakerestapi.azurewebsites.net",
+      "description": "Real server"
+    }
+  ],
   "paths": {
     "/api/v1/Activities": {
       "get": {
