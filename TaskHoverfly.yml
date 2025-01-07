@@ -1,0 +1,72 @@
+version: 3
+
+# Hoverfly Management
+env:
+  COMPOSE_SERVICE_NAME: hoverfly
+  SIMULATION_PATH: ./testdata/hoverfly/
+
+vars:
+  COMPOSE_SERVICE_NAME: hoverfly
+
+tasks:
+  build:
+    desc: Build Hoverfly container
+    internal: true
+    cmds:
+      - docker compose build {{.COMPOSE_SERVICE_NAME}}
+
+  start:
+    desc: Start Hoverfly container
+    cmds:
+      - docker compose up -d --wait {{.COMPOSE_SERVICE_NAME}}
+
+  stop:
+    desc: Stop Hoverfly
+    cmds:
+      - docker compose stop {{.COMPOSE_SERVICE_NAME}}
+
+  export:
+    desc: Export current simulation
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl export {{.SIMULATIONS_DIR}}/{{.SIMULATION_FILE}}.json
+    requires:
+      vars:
+        - SIMULATIONS_DIR
+        - SIMULATION_FILE
+
+  import:
+    desc: Import provided simulation
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl import {{.SIMULATION_FILE}}
+    requires:
+      vars:
+        - SIMULATION_FILE
+
+  import-last:
+    desc: Import last simulation
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl import $(ls -t ${SIMULATION_PATH} | head -n 1)
+    internal: true
+
+  mode:
+    desc: Set Hoverfly mode (capture/simulate/spy/modify)
+    vars:
+      name: MODE
+      enum: [capture, simulate, spy, modify]
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl mode {{.MODE}}
+
+  logs:
+    desc: Show Hoverfly logs
+    cmds:
+      - docker compose logs {{.COMPOSE_SERVICE_NAME}}
+
+  process-simulation:
+    desc: Postprocess simulation file with provided processor. The result is saved in the same file.
+    cmds:
+      - go run ./tools/postprocessor/*.go -file {{.SIMULATION_FILE}} -processor {{.PROCESSOR}}
+    requires:
+      vars:
+        - name: SIMULATION_FILE
+        - name: PROCESSOR
+          enum: [null, default]

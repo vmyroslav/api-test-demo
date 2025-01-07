@@ -1,12 +1,279 @@
 version: 3
 
-tasks:
-  build:
-    desc: "Build the project"
-    cmds:
-      - go build -v -i main.go
+includes:
+    hoverfly: ./TaskHoverfly.yml
+    internal:
+      taskfile: ./TaskInternal.yml
+#      internal: true
 
-  generate:
-    desc: "Generate the project"
+# Global configuration
+vars:
+  SIMULATIONS_DIR: ./testdata/hoverfly
+  EXPIRED_AFTER_DAYS: 7
+  HOVERFLY_PORT: 8500
+  SERVICE_TEST: test
+  SERVICE_HOVERFLY: hoverfly
+  SERVICE_OAPI_GENERATOR: oapi-generator
+  SERVICE_OPENAPI_GENERATOR: openapi-generator
+
+tasks:
+  default:
+    deps: [help]
+
+  help:
     cmds:
-      - docker-compose run --rm swagger-gen
+      - task --list
+    silent: true
+
+  # General Tasks
+  fumpt:
+    desc: Gofumpt project files
+    cmds:
+      - find . -name '*.go' -type f -exec gofumpt -w {} +
+
+  build:container:
+    desc: "Build all docker compose services"
+    cmds:
+      - docker-compose build
+
+  stop:
+    desc: "Stop all docker compose services"
+    cmds:
+      - docker-compose down
+
+  clear:
+    desc: Delete all Hoverfly simulations
+    preconditions:
+      - sh: '[ ! -z "{{.SIMULATIONS_DIR}}" ]'
+        msg: "SIMULATIONS_DIR must be set"
+      - sh: '[ -d "{{.SIMULATIONS_DIR}}" ]'
+        msg: "SIMULATIONS_DIR must exist and be a directory"
+    cmds:
+      - find "{{.SIMULATIONS_DIR}}" -name "*.json" -type f -delete
+    silent: true
+
+  # Test Modes
+  test:local:
+    desc: |
+      Run all tests on local machine. By default, tests are run against real API.
+      Optionally use Hoverfly for simulation or capturing by setting HOVERFLY_PROXY environment variable and running hoverfly service.
+    deps:
+      - internal:check-gotestsum
+    cmds:
+      - PATH="$(go env GOPATH)/bin:$PATH" gotestsum
+        --format pkgname
+        --hide-summary=skipped
+        --
+        -json ./...
+        -race
+        -timeout=30s
+        -count=1
+    env:
+      HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
+
+  test:container:
+    desc: Run all tests in container. By default, tests are run against real API.
+    cmds:
+      - docker-compose run
+        --rm
+        --no-deps
+        -e HOVERFLY_PROXY={{.HOVERFLY_PROXY}}
+        {{.SERVICE_TEST}} gotestsum
+        --format pkgname
+        --hide-summary=skipped
+        --
+        -json ./...
+        -race
+        -timeout=30s
+        -count=1
+    env:
+      HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
+
+  test:local:capture:
+    desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
+    env:
+      HOVERFLY_PROXY: '{{.HOVERFLY_PROXY}}'
+    vars:
+      TIMESTAMP:
+        sh: date +%Y%m%d_%H%M%S
+    cmds:
+      - defer: {task: hoverfly:stop}
+      - task: internal:bootstrap
+        vars:
+          CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: capture
+      - task: test:local
+        vars:
+          HOVERFLY_PROXY: "localhost:{{.HOVERFLY_PORT | default 8500}}"
+      - task: hoverfly:export
+        vars:
+          SIMULATIONS_DIR: '{{.SIMULATIONS_DIR}}'
+          SIMULATION_FILE: '{{.TIMESTAMP}}'
+      - task: hoverfly:process-simulation
+        vars:
+          SIMULATION_FILE:
+            sh: task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}
+          PROCESSOR: "default"
+
+  test:local:simulate:
+    desc: Run tests locally simulating the API with Hoverfly
+    deps:
+      - task: internal:bootstrap
+        vars:
+          CLI_ARGS: hoverfly
+    vars:
+      LATEST_SIM:
+        sh: |
+          if ! SIM=$(task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}); then
+            echo ""  # Return empty string if subtask fails
+          else
+            echo "$SIM"
+          fi
+    preconditions:
+      - sh: '[ -f "{{.LATEST_SIM}}" ]'
+        msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
+    cmds:
+      - task: hoverfly:mode
+        vars:
+          MODE: simulate
+      - task: hoverfly:import
+        vars:
+          SIMULATION_FILE: '{{.LATEST_SIM}}'
+      - task: test:local
+        vars:
+          HOVERFLY_PROXY: "localhost:{{.HOVERFLY_PORT | default 8500}}"
+
+  test:container:capture:
+    desc: Run tests in container and capture traffic with Hoverfly. Export simulation to file.
+    vars:
+      TIMESTAMP:
+        sh: date +%Y%m%d_%H%M%S
+    cmds:
+      - defer: { task: hoverfly:stop }
+      - task: internal:bootstrap
+        vars:
+          CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: capture
+      - docker-compose run
+        --rm
+        --no-deps
+        -e HOVERFLY_PROXY='{{.SERVICE_HOVERFLY}}:{{.HOVERFLY_PORT}}'
+        {{.SERVICE_TEST}} gotestsum
+        --format pkgname
+        --hide-summary=skipped
+        --
+        -json ./...
+        -race
+        -timeout=30s
+        -count=1
+      - task: hoverfly:export
+        vars:
+          SIMULATIONS_DIR: '{{.SIMULATIONS_DIR}}'
+          SIMULATION_FILE: '{{.TIMESTAMP}}'
+      - task: hoverfly:process-simulation
+        vars:
+          SIMULATION_FILE:
+            sh: task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}
+          PROCESSOR: "default"
+
+  test:container:simulate:
+    desc: Run tests in container simulating the API with Hoverfly
+    deps:
+      - task: internal:bootstrap
+        vars:
+          CLI_ARGS: hoverfly
+    vars:
+      LATEST_SIM:
+        sh: |
+          if ! SIM=$(task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}); then
+            echo ""  # Return empty string if subtask fails
+          else
+            echo "$SIM"
+          fi
+    preconditions:
+      - sh: '[ -f "{{.LATEST_SIM}}" ]'
+        msg: "Simulation file does not exist. Please run 'task test:container:capture' first"
+    cmds:
+      - task: hoverfly:mode
+        vars:
+          MODE: simulate
+      - task: hoverfly:import
+        vars:
+          SIMULATION_FILE: '{{.LATEST_SIM}}'
+      - docker-compose run
+        --rm
+        --no-deps
+        -e HOVERFLY_PROXY='{{.SERVICE_HOVERFLY}}:{{.HOVERFLY_PORT}}'
+        {{.SERVICE_TEST}} gotestsum
+        --format pkgname
+        --hide-summary=skipped
+        --
+        -json ./...
+        -race
+        -timeout=30s
+        -count=1
+
+  # Dev Helpers
+  dev:capture:
+    desc: |
+      Start Hoverfly container in capture mode. 
+      Note: the simulation will not be saved automatically. 
+      Please run 'task hoverfly:export' after running your workflow to save the simulation.
+      Or export the simulation manually by running 'task hoverfly:export SIMULATION_FILE=<filename>'
+    cmds:
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: capture
+
+  dev:simulate:
+    desc: Start Hoverfly container in simulate mode and import latest simulation
+    vars:
+      LATEST_SIM:
+        sh: |
+          if ! SIM=$(task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}); then
+            echo ""  # Return empty string if subtask fails
+          else
+            echo "$SIM"
+          fi
+    preconditions:
+      - sh: '[ -f "{{.LATEST_SIM}}" ]'
+        msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
+    cmds:
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: simulate
+      - task: hoverfly:import
+        vars:
+          SIMULATION_FILE: '{{.LATEST_SIM}}'
+
+  dev:spy:
+    desc: Start Hoverfly in spy mode
+    cmds:
+      - task: bootstrap
+        vars:
+            CLI_ARGS: hoverfly
+      - task: hoverfly:mode
+        vars:
+          MODE: spy
+
+  # Client Generation Tasks
+  generate:oapi:
+    desc: "Generate the HTTP client using oapi-codegen"
+    cmds:
+      - docker-compose run --rm {{.SERVICE_OAPI_GENERATOR}}
+
+  generate:openapi:
+    desc: "Generate the HTTP client using OpenAPI Generator"
+    cmds:
+      - docker-compose run --rm {{.SERVICE_OPENAPI_GENERATOR}}
+      - cd ./client/openapi && gofmt -w .

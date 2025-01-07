@@ -1,36 +1,62 @@
 services:
+  oapi-generator:
+    container_name: oapi-generator
+    build:
+      context: .
+      dockerfile: ./docker/oapi.Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    command:
+      - "-package"
+      - "oapi"
+      - "-generate"
+      - "types,client"
+      - "-o"
+      - "./client/oapi/client.go"
+      - "./api/test_api.json"
+
+  openapi-generator:
+    container_name: openapi-generator
+    build:
+      context: .
+      dockerfile: ./docker/openapi.Dockerfile
+    volumes:
+      - .:/app
+    working_dir: /app
+    command: >
+      generate -i ./api/test_api.json 
+      -g go 
+      -o ./client/openapi 
+      --git-user-id=vmyroslav
+      --git-repo-id=api-test-demo
+      --additional-properties=packageName=openapi,withGoMod=false
+
   hoverfly:
-    image: spectolabs/hoverfly:v2.0.0
+    container_name: api-test-demo-hoverfly
+    build:
+      context: ./docker
+      dockerfile: hoverfly.Dockerfile
+      args:
+        - HOVERFLY_VERSION=1.10.6
+        - HOVERFLY_ADMIN_PORT=${HOVERFLY_ADMIN_PORT:-8888}
+        - HOVERFLY_PROXY_PORT=${HOVERFLY_PROXY_PORT:-8500}
     ports:
-      - "8500:8500"   # Proxy port
-      - "8888:8888"   # Admin API port
-    command: [-webserver]
+      - "${HOVERFLY_HOST_ADMIN_PORT:-8888}:${HOVERFLY_ADMIN_PORT:-8888}"
+      - "${HOVERFLY_HOST_PROXY_PORT:-8500}:${HOVERFLY_PROXY_PORT:-8500}"
+    volumes:
+      - ./testdata/hoverfly:/testdata/hoverfly
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/api/v2/hoverfly"]
+      test: ["CMD", "curl", "-f", "http://localhost:${HOVERFLY_ADMIN_PORT:-8888}/api/health"]
       interval: 1s
       timeout: 3s
-      retries: 60
-
-  swagger-gen:
-    build:
-      context: .
-      dockerfile: ./docker/swagger.Dockerfile
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: ["swagger", "generate", "client", "-f", "swagger.json", "-t", "client"]
+      retries: 5
 
   test:
+    container_name: api-test-demo-testing
     build:
       context: .
-      dockerfile: Dockerfile.swagger.test
+      dockerfile: ./docker/test.Dockerfile
     volumes:
       - .:/app
     working_dir: /app
-    environment:
-      - HTTP_PROXY=http://hoverfly:8500
-      - HTTPS_PROXY=http://hoverfly:8500
-      - CAPTURE_MODE=${CAPTURE_MODE:-false}
-    depends_on:
-      hoverfly:
-        condition: service_healthy
