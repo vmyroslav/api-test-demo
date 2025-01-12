@@ -35,8 +35,8 @@ services:
   hoverfly:
     container_name: api-test-demo-hoverfly
     build:
-      context: ./docker
-      dockerfile: hoverfly.Dockerfile
+      context: .
+      dockerfile: ./docker/hoverfly.Dockerfile
       args:
         - HOVERFLY_VERSION=1.10.6
         - HOVERFLY_ADMIN_PORT=${HOVERFLY_ADMIN_PORT:-8888}

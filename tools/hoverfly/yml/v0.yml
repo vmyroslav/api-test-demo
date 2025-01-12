@@ -1,0 +1,49 @@
+version: "0"
+
+settings:
+  case_sensitive: false
+  debug: true
+
+patterns:
+  - type: "datetime"
+    formats:
+      - "RFC3339"
+      - "2006-01-02"
+    replace_with: "*"
+
+  - type: "uuid"
+    replace_with: "00000000-0000-0000-0000-000000000000"
+
+  - type: "prefix"
+    pattern: "fake-api-test"
+    keep_chars: 5
+    replace_with: "*"
+
+  - type: "regex"
+    pattern: "DOC-\\d+"
+    replace_with: "DOC-*"
+
+rules:
+  - path: "/api/v1/activities"
+    methods: ["POST", "PUT"]
+    request:
+      body:
+        fields:
+          title:
+            type: "prefix"
+            pattern: "fake-api-test"
+            keep_chars: 5
+            replace_with: "*"
+          due_date:
+            type: "datetime"
+            formats: ["RFC3339"]
+            replace_with: "*"
+    response:
+      template_matched_fields: true
+
+  - path: "/api/v1/users/*"
+    methods: ["GET"]
+    request:
+      headers:
+        X-Request-ID:
+          type: "uuid"  # Simple reference to built-in type
