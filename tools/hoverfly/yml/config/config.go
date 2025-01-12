@@ -1,5 +1,7 @@
 package config
 
+import "net/http"
+
 type Config interface {
 	Routes() []Route
 	Patterns() []Pattern
@@ -9,17 +11,19 @@ type Route interface {
 	Path() string
 	Methods() []string
 	Request() Request
+	Response() Response
 }
 
 type Request interface {
-	Headers() map[string][]string
 	Body() string
+	Headers() http.Header
+	AdditionalConfig() map[string]any
 }
 
 type Response interface {
-	Headers() map[string][]string
 	Body() string
-	TemplateMatchedFields() bool
+	Headers() http.Header
+	AdditionalConfig() map[string]any
 }
 
 type Pattern interface {
