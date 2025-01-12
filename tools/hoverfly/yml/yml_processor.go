@@ -1,16 +1,8 @@
 package yml
 
-func ProcessVersion(version string) Config {
+import "github.com/vmyroslav/api-test-demo/tools/hoverfly/yml/config"
+
+func ProcessVersion(version string) config.Config {
 	panic("implement me")
 	return nil
-}
-
-type Config interface {
-	Routes() []Route
-}
-
-type Route struct {
-	Method  string
-	Path    string
-	Matcher string
 }
