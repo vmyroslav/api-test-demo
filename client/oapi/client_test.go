@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -173,7 +176,6 @@ func TestAuthors(t *testing.T) {
 				require.NotNil(t, resp.ApplicationjsonV10200, "expected resp body, got nil")
 
 				assert.Equal(t, http.StatusOK, resp.StatusCode())
-				// Compare with wrong ID on purpose to test that Hoverfly is working
 				assert.Equal(t, id, *resp.ApplicationjsonV10200.Id)
 				assert.NotEmpty(t, *resp.ApplicationjsonV10200.FirstName, "expected non-empty first name")
 				assert.NotEmpty(t, *resp.ApplicationjsonV10200.LastName, "expected non-empty last name")
@@ -324,6 +326,150 @@ func TestUsers(t *testing.T) {
 	}
 
 	client := setupClient(t)
+
+	for _, tt := range scenarios {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.testFunc(t, client)
+		})
+	}
+}
+
+func TestUUIDPatterns(t *testing.T) {
+	client := setupClient(t)
+
+	// Test multiple UUID cases
+	scenarios := []testCase{
+		{
+			name: "create activity with UUID in title",
+			testFunc: func(t *testing.T, client *ClientWithResponses) {
+				ctx := context.Background()
+
+				// Create multiple activities with different UUIDs
+				for i := 0; i < 3; i++ {
+					id := int32(12356 + i)
+					title := uuid.New().String()
+
+					resp, err := client.PostApiV1ActivitiesWithApplicationJSONV10BodyWithResponse(
+						ctx,
+						PostApiV1ActivitiesApplicationJSONV10RequestBody{
+							Id:        tests.ToPtr(id),
+							Title:     tests.ToPtr(title),
+							DueDate:   tests.ToPtr(time.Now()),
+							Completed: tests.ToPtr(false),
+						},
+					)
+					require.NoError(t, err)
+					require.NotNil(t, resp)
+					require.NotNil(t, resp.ApplicationjsonV10200)
+					assert.Equal(t, http.StatusOK, resp.StatusCode())
+					assert.NotNil(t, resp.ApplicationjsonV10200)
+					assert.Equal(t, title, *resp.ApplicationjsonV10200.Title)
+				}
+			},
+		},
+	}
+
+	for _, tt := range scenarios {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.testFunc(t, client)
+		})
+	}
+}
+
+func TestDemoEndpointReplacement(t *testing.T) {
+	client := setupClient(t)
+
+	// Test multiple UUID cases
+	scenarios := []testCase{
+		{
+			name: "create activity with UUID in title",
+			testFunc: func(t *testing.T, client *ClientWithResponses) {
+				ctx := context.Background()
+
+				resp, err := client.GetApiV1ActivitiesIdWithResponse(ctx, 30)
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+				require.NotNil(t, resp.ApplicationjsonV10200)
+
+				assert.Equal(t, http.StatusOK, resp.StatusCode())
+				// Uncomment these lines during the simulation to check the static response replacement
+				// assert.Equal(t, int32(77), *resp.ApplicationjsonV10200.Id)
+				// assert.Equal(t, "John Doe", *resp.ApplicationjsonV10200.Title)
+				// assert.Equal(t, false, *resp.ApplicationjsonV10200.Completed)
+			},
+		},
+	}
+
+	for _, tt := range scenarios {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.testFunc(t, client)
+		})
+	}
+}
+
+func TestActivitiesWithRetries(t *testing.T) {
+	serverUrl, ok := os.LookupEnv("API_SERVER_URL")
+	if !ok || serverUrl == "" {
+		ts := tests.NewTestServer() // Start our test server
+		defer ts.Close()
+
+		serverUrl = ts.URL()
+	}
+
+	httpClient := tests.NewHttpClient(t)
+	client, err := NewClientWithResponses(serverUrl, WithHTTPClient(httpClient))
+	if err != nil {
+		t.Fatalf("failed to inistialize client: %v", err)
+	}
+	defer func() {
+		// Reset the server state
+		_, _ = httpClient.Post(serverUrl+"/reset", "application/json", nil)
+	}()
+
+	scenarios := []testCase{
+		{
+			name: "create activity with retries",
+			testFunc: func(t *testing.T, client *ClientWithResponses) {
+				var (
+					ctx   = context.Background()
+					id    = int32(7474)
+					title = "Test Activity"
+				)
+
+				var lastErr error
+				for attempt := 1; attempt <= 4; attempt++ {
+					resp, err := client.GetApiV1ActivitiesIdWithResponse(
+						ctx,
+						id,
+					)
+					if err != nil {
+						lastErr = err
+						continue
+					}
+
+					// Success!
+					if resp.StatusCode() == http.StatusOK {
+						require.NotNil(t, resp.ApplicationjsonV10200)
+						assert.Equal(t, id, *resp.ApplicationjsonV10200.Id)
+						assert.Equal(t, title, *resp.ApplicationjsonV10200.Title)
+						return
+					}
+
+					// Continue if it's a retryable status
+					if resp.StatusCode() == http.StatusServiceUnavailable ||
+						resp.StatusCode() == http.StatusGatewayTimeout {
+						continue
+					}
+
+					// Non-retryable error
+					t.Fatalf("Got non-retryable status: %d", resp.StatusCode())
+				}
+
+				// If we got here, all retries failed
+				t.Fatalf("All retries failed. Last error: %v", lastErr)
+			},
+		},
+	}
 
 	for _, tt := range scenarios {
 		t.Run(tt.name, func(t *testing.T) {

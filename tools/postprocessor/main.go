@@ -3,108 +3,107 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log/slog"
 	"os"
-	"path/filepath"
 
 	"github.com/vmyroslav/api-test-demo/tools/postprocessor/processor"
-)
 
-// ProcessorType is a custom type for processor options
-type ProcessorType string
-
-const (
-	DefaultProcessorType ProcessorType = "default"
-	NullProcessorType    ProcessorType = "null"
+	v2 "github.com/SpectoLabs/hoverfly/core/handlers/v2"
+	"github.com/vmyroslav/api-test-demo/tools/postprocessor/config"
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
-
 	var (
-		inputFile     string
-		proc          processor.PostProcessor
-		processorType ProcessorType = NullProcessorType
+		inputFile  string
+		configFile string
+		logLevel   string
 	)
 
 	flag.StringVar(&inputFile, "file", "", "Path to the Hoverfly simulation file")
-	flag.Var(&processorType, "processor", "Processor type to use (default or null)")
+	flag.StringVar(&configFile, "config", "", "Path to the processor configuration file")
+	flag.StringVar(&logLevel, "log-level", "error", "Log level (debug, info, warn, error)")
 	flag.Parse()
 
 	if inputFile == "" {
-		slog.Error("Error: -file flag is required")
+		slog.Error("missing required argument", "argument", "file")
 		flag.Usage()
 		os.Exit(1)
 	}
 
-	// Read the simulation file
-	data, err := os.ReadFile(inputFile)
+	if configFile == "" {
+		slog.Error("missing required argument", "argument", "config")
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	// Load configuration
+	cfg, err := config.LoadConfig(configFile)
 	if err != nil {
-		slog.Error("Error reading file", "err", err)
+		slog.Error("Error loading configuration", "error", err)
 		os.Exit(1)
 	}
 
-	var simulation processor.Simulation
-	if err = json.Unmarshal(data, &simulation); err != nil {
-		slog.Error("Error unmarshaling simulation", "err", err)
+	// Set up logging with appropriate level
+	logger := setupLogger(cfg.Settings.Debug)
+
+	// Read and parse the simulation file
+	simData, err := os.ReadFile(inputFile)
+	if err != nil {
+		logger.Error("error reading simulation file", "error", err)
 		os.Exit(1)
 	}
 
-	// Select the processor based on the flag
-	switch processorType {
-	case DefaultProcessorType:
-		proc = processor.NewDefaultProcessor()
-	case NullProcessorType:
-		proc = &processor.NullProcessor{}
-	default:
-		slog.Error("Unknown processor type", "type", processorType)
+	var simulation v2.SimulationViewV5
+	if err = json.Unmarshal(simData, &simulation); err != nil {
+		logger.Error("error parsing simulation", "error", err)
 		os.Exit(1)
 	}
 
-	// Process the simulation
+	// Create and run processor
+	proc := processor.New(cfg, logger)
 	if err = proc.Process(&simulation); err != nil {
-		slog.Error("Error processing simulation", "err", err)
+		logger.Error("Error processing simulation", "error", err)
 		os.Exit(1)
 	}
 
-	// Create temporary file for processed output
-	dir := filepath.Dir(inputFile)
-	tmpFile := filepath.Join(dir, "processed_"+filepath.Base(inputFile))
+	// Write processed simulation to temporary file first
+	tmpFile := inputFile + ".tmp"
 
-	// Write processed simulation
-	output, err := json.MarshalIndent(simulation, "", "  ")
+	// Format with indentation for readability
+	processedData, err := json.MarshalIndent(simulation, "", "  ")
 	if err != nil {
-		slog.Error("Error marshaling processed simulation", "err", err)
+		logger.Error("error serializing processed simulation", "error", err)
 		os.Exit(1)
 	}
 
-	if err = os.WriteFile(tmpFile, output, 0o644); err != nil {
-		slog.Error("Error writing processed file", "err", err)
+	if err = os.WriteFile(tmpFile, processedData, 0o644); err != nil {
+		logger.Error("Error writing processed simulation", "error", err)
 		os.Exit(1)
 	}
 
+	// Replace original file with processed one
 	if err = os.Rename(tmpFile, inputFile); err != nil {
-		slog.Error("Error replacing original file", "err", err)
+		logger.Error("Error replacing original file", "error", err)
 		os.Exit(1)
 	}
 
-	slog.Info(fmt.Sprintf("Processed simulation saved to %s", inputFile))
+	logger.Info("Simulation processed successfully", "output", inputFile)
 }
 
-// String returns the string representation of the ProcessorType
-func (p *ProcessorType) String() string {
-	return string(*p)
-}
+func setupLogger(isDebug bool) *slog.Logger {
+	logLevel := slog.LevelError
 
-// Set sets the ProcessorType based on the input string
-func (p *ProcessorType) Set(value string) error {
-	switch value {
-	case string(DefaultProcessorType), string(NullProcessorType):
-		*p = ProcessorType(value)
-
-		return nil
-	default:
-		return fmt.Errorf("invalid processor type: %s", value)
+	if isDebug {
+		logLevel = slog.LevelDebug
 	}
+
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	})
+
+	l := slog.New(handler)
+
+	slog.SetDefault(l)
+
+	return l
 }

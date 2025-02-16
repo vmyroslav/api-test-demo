@@ -1,0 +1,32 @@
+version: "1.0"
+settings:
+  case_sensitive: false
+  debug: false
+
+patterns:
+  # All UUIDs will be replaced with the default regex pattern
+  - type: "uuid"
+
+  # Dates will be replaced with "*" by default
+  - type: "datetime"
+    formats:
+      - "2006-01-02T15:04:05Z07:00"
+      - "2006-01-02"
+
+  # Prefix matching with default "*" suffix
+  - type: "prefix"
+    pattern: "fake-api-test-"
+    length: 5
+
+endpoints:
+  # Replace the response of the endpoint with the static_response
+  - method: "GET"
+    path: "/api/v1/Activities/30"
+    status: 200
+    static_response: |
+      {
+        "id": 77,
+        "title": "John Doe",
+        "dueDate": "2025-02-19T17:12:52.127Z",
+        "completed": false
+      }
