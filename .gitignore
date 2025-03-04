@@ -2,3 +2,6 @@
 vendor/
 
 testdata/hoverfly/*.json
+/bin/
+/.task/
+/.env

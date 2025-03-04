@@ -4,6 +4,7 @@ version: 3
 env:
   COMPOSE_SERVICE_NAME: hoverfly
   SIMULATION_PATH: ./testdata/hoverfly/
+  CONFIG_DIR: ./config
 
 vars:
   COMPOSE_SERVICE_NAME: hoverfly
@@ -53,20 +54,33 @@ tasks:
     vars:
       name: MODE
       enum: [capture, simulate, spy, modify]
+    args: "{{.ARGS | default ''}}"
     cmds:
-      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl mode {{.MODE}}
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl mode {{.MODE}} {{.ARGS}}
 
   logs:
     desc: Show Hoverfly logs
     cmds:
       - docker compose logs {{.COMPOSE_SERVICE_NAME}}
 
-  process-simulation:
-    desc: Postprocess simulation file with provided processor. The result is saved in the same file.
-    cmds:
-      - go run ./tools/postprocessor/*.go -file {{.SIMULATION_FILE}} -processor {{.PROCESSOR}}
+  postprocess:simulation:
+    desc: Process a simulation file using the postprocessor
+    deps: [build:postprocessor]
     requires:
-      vars:
-        - name: SIMULATION_FILE
-        - name: PROCESSOR
-          enum: [null, default]
+      vars: [SIMULATION_FILE]
+    cmds:
+      - ./bin/postprocessor -config {{.CONFIG_DIR}}/postprocess.yaml -file {{.SIMULATION_FILE}}
+
+  build:postprocessor:
+    desc: Build postprocessor binary
+    dir: .
+    preconditions:
+      - sh: '[ -d "bin" ] || mkdir -p bin'
+        msg: "Creating bin directory"
+    cmds:
+      - go build -o bin/postprocessor ./tools/postprocessor
+    sources:
+      - ./tools/postprocessor/**/*.go
+      - ./config/postprocess.yaml
+    generates:
+      - bin/postprocessor

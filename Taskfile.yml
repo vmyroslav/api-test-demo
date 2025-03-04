@@ -34,7 +34,7 @@ tasks:
   build:container:
     desc: "Build all docker compose services"
     cmds:
-      - docker-compose build
+      - docker-compose --profile "*" build
 
   stop:
     desc: "Stop all docker compose services"
@@ -51,6 +51,39 @@ tasks:
     cmds:
       - find "{{.SIMULATIONS_DIR}}" -name "*.json" -type f -delete
     silent: true
+
+  # Middleware Tasks
+  build:middleware:
+    desc: Build middleware binary locally
+    dir: .
+    preconditions:
+      - sh: '[ -d "bin" ] || mkdir -p bin'
+        msg: "Creating bin directory"
+    cmds:
+      - go build -o bin/middleware ./tools/middleware
+    sources:
+      - ./tools/middleware/**/*.go
+      - ./middleware/**/*.go
+    generates:
+      - bin/middleware
+
+  build:postprocessor:
+    desc: Build postprocessor binary
+    dir: .
+    preconditions:
+      - sh: '[ -d "bin" ] || mkdir -p bin'
+        msg: "Creating bin directory"
+    cmds:
+      - GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bin/postprocessor ./tools/postprocessor
+    sources:
+      - ./tools/postprocessor/**/*.go
+    generates:
+      - bin/postprocessor
+
+  set-middleware:
+    desc: Set middleware for Hoverfly
+    cmds:
+      - docker compose exec {{.COMPOSE_SERVICE_NAME}} hoverctl middleware --binary /app/bin/middleware
 
   # Test Modes
   test:local:
@@ -70,6 +103,7 @@ tasks:
         -count=1
     env:
       HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
+      API_SERVER_URL: '{{.API_SERVER_URL | default ""}}'
 
   test:container:
     desc: Run all tests in container. By default, tests are run against real API.
@@ -88,6 +122,7 @@ tasks:
         -count=1
     env:
       HOVERFLY_PROXY: '{{.HOVERFLY_PROXY | default ""}}'
+      API_SERVER_URL: '{{.API_SERVER_URL | default ""}}'
 
   test:local:capture:
     desc: Run tests on local machine and capture traffic with Hoverfly. Export simulation to file.
@@ -97,25 +132,26 @@ tasks:
       TIMESTAMP:
         sh: date +%Y%m%d_%H%M%S
     cmds:
-      - defer: {task: hoverfly:stop}
+      - defer: {task: stop}
       - task: internal:bootstrap
         vars:
-          CLI_ARGS: hoverfly
+          CLI_ARGS: hoverfly test-server
       - task: hoverfly:mode
         vars:
-          MODE: capture
+          MODE: "capture"
+          ARGS: "--stateful"
       - task: test:local
         vars:
           HOVERFLY_PROXY: "localhost:{{.HOVERFLY_PORT | default 8500}}"
+          API_SERVER_URL: 'http://test-server:8111'
       - task: hoverfly:export
         vars:
           SIMULATIONS_DIR: '{{.SIMULATIONS_DIR}}'
           SIMULATION_FILE: '{{.TIMESTAMP}}'
-      - task: hoverfly:process-simulation
+      - task: hoverfly:postprocess:simulation
         vars:
           SIMULATION_FILE:
             sh: task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}
-          PROCESSOR: "default"
 
   test:local:simulate:
     desc: Run tests locally simulating the API with Hoverfly
@@ -135,6 +171,7 @@ tasks:
       - sh: '[ -f "{{.LATEST_SIM}}" ]'
         msg: "Simulation file does not exist. Please run 'task test:local:capture' first"
     cmds:
+      - defer: {task: stop}
       - task: hoverfly:mode
         vars:
           MODE: simulate
@@ -144,6 +181,7 @@ tasks:
       - task: test:local
         vars:
           HOVERFLY_PROXY: "localhost:{{.HOVERFLY_PORT | default 8500}}"
+          API_SERVER_URL: 'http://test-server:8111'
 
   test:container:capture:
     desc: Run tests in container and capture traffic with Hoverfly. Export simulation to file.
@@ -151,13 +189,14 @@ tasks:
       TIMESTAMP:
         sh: date +%Y%m%d_%H%M%S
     cmds:
-      - defer: { task: hoverfly:stop }
+      - defer: {task: stop}
       - task: internal:bootstrap
         vars:
           CLI_ARGS: hoverfly
       - task: hoverfly:mode
         vars:
-          MODE: capture
+          MODE: "capture"
+          ARGS: "--stateful"
       - docker-compose run
         --rm
         --no-deps
@@ -174,11 +213,10 @@ tasks:
         vars:
           SIMULATIONS_DIR: '{{.SIMULATIONS_DIR}}'
           SIMULATION_FILE: '{{.TIMESTAMP}}'
-      - task: hoverfly:process-simulation
+      - task: hoverfly:postprocess:simulation
         vars:
           SIMULATION_FILE:
             sh: task internal:find:latest:simulation SIMULATIONS_DIR={{.SIMULATIONS_DIR}} EXPIRED_AFTER_DAYS={{.EXPIRED_AFTER_DAYS}}
-          PROCESSOR: "default"
 
   test:container:simulate:
     desc: Run tests in container simulating the API with Hoverfly
@@ -198,6 +236,7 @@ tasks:
       - sh: '[ -f "{{.LATEST_SIM}}" ]'
         msg: "Simulation file does not exist. Please run 'task test:container:capture' first"
     cmds:
+      - defer: {task: stop}
       - task: hoverfly:mode
         vars:
           MODE: simulate

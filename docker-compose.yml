@@ -7,6 +7,8 @@ services:
     volumes:
       - .:/app
     working_dir: /app
+    profiles:
+      - generate
     command:
       - "-package"
       - "oapi"
@@ -24,6 +26,8 @@ services:
     volumes:
       - .:/app
     working_dir: /app
+    profiles:
+      - generate
     command: >
       generate -i ./api/test_api.json 
       -g go 
@@ -46,11 +50,16 @@ services:
       - "${HOVERFLY_HOST_PROXY_PORT:-8500}:${HOVERFLY_PROXY_PORT:-8500}"
     volumes:
       - ./testdata/hoverfly:/testdata/hoverfly
+      - ./bin:/app/bin
+    environment:
+      - HOVERFLY_MIDDLEWARE=/app/bin/middleware
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${HOVERFLY_ADMIN_PORT:-8888}/api/health"]
       interval: 1s
       timeout: 3s
       retries: 5
+    networks:
+      - test-network
 
   test:
     container_name: api-test-demo-testing
@@ -60,3 +69,23 @@ services:
     volumes:
       - .:/app
     working_dir: /app
+
+  test-server:
+    build:
+      context: .
+      dockerfile: ./docker/server.Dockerfile
+    environment:
+      - SERVER_PORT=8111
+    ports:
+      - "8111:8111"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8111/health"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge

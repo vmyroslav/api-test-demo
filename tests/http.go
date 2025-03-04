@@ -22,7 +22,7 @@ func NewHttpClient(t *testing.T) *http.Client {
 	t.Parallel()
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(&url.URL{
 				Scheme: "http",

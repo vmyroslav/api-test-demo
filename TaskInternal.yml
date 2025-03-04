@@ -13,24 +13,29 @@ tasks:
       - which gotestsum
 
   bootstrap:
-    desc: Bootstrap a Docker Compose service if it's not running
+    desc: Bootstrap Docker Compose services if they're not running
     vars:
       SERVICE: '{{.CLI_ARGS}}'
     cmds:
       - |
         if [ -n "{{.SERVICE}}" ]; then
-          # Check if service exists in docker-compose.yml
-          if ! docker compose config --services | grep -q "^{{.SERVICE}}$"; then
-            echo "Error: Service '{{.SERVICE}}' does not exist in docker-compose.yml"
-            exit 1
-          fi
-
-          # Check if specific service is running
-          if ! docker compose ps --services --filter "status=running" | grep -q "^{{.SERVICE}}$"; then
-            echo "Starting service '{{.SERVICE}}'..."
+          # Check if services exist in docker-compose.yml
+          for svc in {{.SERVICE}}; do
+            if ! docker compose config --services | grep -q "^${svc}$"; then
+              echo "Error: Service '${svc}' does not exist in docker-compose.yml"
+              exit 1
+            fi
+          done
+  
+          # Check if all specified services are running
+          RUNNING_SERVICES=$(docker compose ps --services --filter "status=running")
+          MISSING_SERVICES=$(echo "{{.SERVICE}}" | tr ' ' '\n' | grep -v "^$(echo "$RUNNING_SERVICES" | tr '\n' '|')$" || true)
+  
+          if [ -n "$MISSING_SERVICES" ]; then
+            echo "Starting services: {{.SERVICE}}..."
             docker compose up --wait -d {{.SERVICE}}
           else
-            echo "Service '{{.SERVICE}}' is already running"
+            echo "All requested services are already running"
           fi
         else
           # Check if any services are running

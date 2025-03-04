@@ -1,138 +1,112 @@
 package processor
 
 import (
-	"encoding/json"
 	"fmt"
 	"log/slog"
-	"net/http"
-	"strings"
-	"time"
+
+	v2 "github.com/SpectoLabs/hoverfly/core/handlers/v2"
+	"github.com/vmyroslav/api-test-demo/tools/postprocessor/config"
 )
 
-// PostProcessor defines interface for processing Hoverfly simulations
-type PostProcessor interface {
-	Process(simulation *Simulation) error
+// PatternProcessor is responsible for processing a specific pattern type
+type PatternProcessor interface {
+	// Match checks if the value matches this pattern type
+	Match(value string) bool
+
+	// MatcherType returns the Hoverfly matcher type to use (regex, exact, glob)
+	MatcherType() config.MatcherType
+
+	// ProcessRequest transforms a request value according to this pattern
+	// Returns the transformed value and whether it was modified
+	ProcessRequest(value string) (string, bool)
+
+	// ProcessResponse transforms a response value according to this pattern
+	// field: the field name in the JSON
+	// value: the field value to process
+	// modifiedFields: map of all fields modified in the request
+	// Returns the transformed value and whether it was modified
+	ProcessResponse(field string, value string, modifiedFields map[string]bool) (string, bool)
+
+	// HasReplacement returns true if this processor has a fixed replacement value
+	HasReplacement() bool
 }
 
-// Pattern defines a pattern to match and how to handle it
-type Pattern struct {
-	Match   func(string) bool
-	Replace func(string) string
+// EndpointProcessor processes static endpoint rules
+type EndpointProcessor interface {
+	// FindMatchingRule checks if a pair matches any endpoint rule
+	FindMatchingRule(pair *v2.RequestMatcherResponsePairViewV5) *config.EndpointRule
+
+	// ApplyRule applies a static response to a pair
+	ApplyRule(pair *v2.RequestMatcherResponsePairViewV5, rule *config.EndpointRule) error
 }
 
-// DefaultProcessor implements Processor interface with default pattern matching logic
-type DefaultProcessor struct {
-	patterns []Pattern
+// PostProcessor is the main orchestrator for processing Hoverfly simulations
+type PostProcessor struct {
+	config             *config.Config
+	endpointProcessor  EndpointProcessor
+	processingStrategy ProcessingStrategy
+	logger             *slog.Logger
 }
 
-// NewDefaultProcessor creates new DefaultProcessor with default patterns
-func NewDefaultProcessor() *DefaultProcessor {
-	fakePattern := "fake-api-test"
+// New creates a new processor with the appropriate processors and strategies
+func New(cfg *config.Config, logger *slog.Logger) *PostProcessor {
+	// Create a unified processor registry with standard processors
+	processorRegistry := NewRegistry(logger)
 
-	return &DefaultProcessor{
-		patterns: []Pattern{
-			{
-				// fake-api-test pattern
-				Match: func(s string) bool {
-					return strings.Contains(s, fakePattern)
-				},
-				Replace: func(s string) string {
-					// Replace last 5 characters with "*" as we use this pattern as randomization
-					return strings.Replace(s, s[len(s)-5:], "*", 1)
-				},
-			},
-			{
-				// timestamp pattern
-				Match: func(s string) bool {
-					_, err := time.Parse(time.RFC3339, s)
-					return err == nil
-				},
-				Replace: func(s string) string {
-					return "*"
-				},
-			},
-		},
+	// Create pattern processors directly from config
+	patternProcessors, err := processorRegistry.CreatePatternProcessors(cfg.Patterns)
+	if err != nil {
+		logger.Error("Error creating pattern processors", "error", err)
+		// Create an empty slice in case of error
+		patternProcessors = []PatternProcessor{}
+	}
+
+	// Create endpoint processor if there are endpoint rules
+	var endpointProc EndpointProcessor
+	if len(cfg.Endpoints) > 0 {
+		endpointProc = processorRegistry.CreateEndpointProcessor("static", cfg.Endpoints, cfg.Settings.CaseSensitive)
+	}
+
+	// Create the default processing strategy with the slice of processors
+	processingStrategy := NewDefaultProcessingStrategy(patternProcessors, logger)
+
+	return &PostProcessor{
+		config:             cfg,
+		endpointProcessor:  endpointProc,
+		processingStrategy: processingStrategy,
+		logger:             logger,
 	}
 }
 
-func (p *DefaultProcessor) Process(simulation *Simulation) error {
-	for i := range simulation.Data.Pairs {
-		pair := &simulation.Data.Pairs[i]
+// Process implements the Processor interface
+func (p *PostProcessor) Process(simulation *v2.SimulationViewV5) error {
+	if simulation == nil {
+		return fmt.Errorf("nil simulation provided")
+	}
 
-		if len(pair.Request.Body) > 0 && pair.Request.Body[0].Value != "" {
-			newBody, modifiedFields, err := p.processJSONBody(pair.Request.Body[0].Value)
-			if err != nil {
-				slog.Error("Error processing JSON body", "err", err, "body", pair.Request.Body[0].Value)
+	p.logger.Debug("Processing simulation",
+		"pairs_count", len(simulation.RequestResponsePairs))
+
+	for i := range simulation.RequestResponsePairs {
+		pair := &simulation.RequestResponsePairs[i]
+
+		// 1. Check if this is a static endpoint rule
+		if p.endpointProcessor != nil {
+			if rule := p.endpointProcessor.FindMatchingRule(pair); rule != nil {
+				if err := p.endpointProcessor.ApplyRule(pair, rule); err != nil {
+					return fmt.Errorf("applying static response for pair %d: %w", i, err)
+				}
 				continue
 			}
+		}
 
-			if len(modifiedFields) > 0 {
-				pair.Request.Body[0].Value = newBody
-				pair.Request.Body[0].Matcher = "glob"
-
-				// Process response
-				if (pair.Response.Status == http.StatusOK || pair.Response.Status == http.StatusCreated) && strings.Contains(pair.Response.Body, "{") {
-					var respData map[string]any
-
-					if err = json.Unmarshal([]byte(pair.Response.Body), &respData); err == nil {
-						for field := range modifiedFields {
-							// Template only the fields that were modified in request
-							if _, exists := respData[field]; exists {
-								// Replace response field with templated value, propagating the request field to the response
-								respData[field] = fmt.Sprintf("{{ Request.Body 'jsonpath' '$.%s' }}", field)
-							}
-						}
-						if newRespBody, err := json.Marshal(respData); err == nil {
-							pair.Response.Body = string(newRespBody)
-							pair.Response.Templated = true
-						}
-					}
-				}
-			}
+		// 2. Process the pair
+		if err := p.processingStrategy.Process(pair); err != nil {
+			return fmt.Errorf("processing pair %d: %w", i, err)
 		}
 	}
 
-	return nil
-}
+	p.logger.Debug("Simulation processing completed")
 
-// processJSONBody processes JSON body and returns modified body and modified fields
-func (p *DefaultProcessor) processJSONBody(body string) (string, map[string]bool, error) {
-	var data map[string]any
-
-	if err := json.Unmarshal([]byte(body), &data); err != nil {
-		return body, nil, err
-	}
-
-	modifiedFields := make(map[string]bool)
-	modified := false
-
-	for field, value := range data {
-		if strVal, ok := value.(string); ok {
-			for _, pattern := range p.patterns {
-				if pattern.Match(strVal) {
-					data[field] = pattern.Replace(strVal)
-					modifiedFields[field] = true
-					modified = true
-					break
-				}
-			}
-		}
-	}
-
-	if !modified {
-		return body, nil, nil
-	}
-
-	newBody, err := json.Marshal(data)
-	if err != nil {
-		return body, nil, err
-	}
-
-	return string(newBody), modifiedFields, nil
-}
-
-type NullProcessor struct{}
-
-func (p *NullProcessor) Process(_ *Simulation) error {
 	return nil
 }
