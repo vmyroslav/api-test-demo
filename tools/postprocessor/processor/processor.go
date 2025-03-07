@@ -1,7 +1,11 @@
 package processor
 
 import (
+	"bytes"
+	"compress/gzip"
+	"encoding/base64"
 	"fmt"
+	"io"
 	"log/slog"
 
 	v2 "github.com/SpectoLabs/hoverfly/core/handlers/v2"
@@ -87,6 +91,13 @@ func (p *PostProcessor) Process(simulation *v2.SimulationViewV5) error {
 	p.logger.Debug("Processing simulation",
 		"pairs_count", len(simulation.RequestResponsePairs))
 
+	// First pass: decode all encoded bodies if configured
+	if p.config.Settings.DecodeBody {
+		if err := p.decodeBodies(simulation); err != nil {
+			return fmt.Errorf("decoding bodies: %w", err)
+		}
+	}
+
 	for i := range simulation.RequestResponsePairs {
 		pair := &simulation.RequestResponsePairs[i]
 
@@ -109,4 +120,85 @@ func (p *PostProcessor) Process(simulation *v2.SimulationViewV5) error {
 	p.logger.Debug("Simulation processing completed")
 
 	return nil
+}
+
+// decodeBodies decodes all encoded bodies in the simulation
+func (p *PostProcessor) decodeBodies(simulation *v2.SimulationViewV5) error {
+	for i := range simulation.RequestResponsePairs {
+		pair := &simulation.RequestResponsePairs[i]
+
+		// Decode response body if encoded
+		if pair.Response.EncodedBody {
+			decodedBody, err := decodeBody(pair.Response.Body)
+			if err != nil {
+				return fmt.Errorf("failed decoding response body for pair %d: %w", i, err)
+			}
+
+			pair.Response.Body = decodedBody
+			pair.Response.EncodedBody = false
+
+			p.logger.Debug("Decoded response body",
+				"pair", i,
+				"body_length", len(pair.Response.Body))
+		}
+
+		// Process request body matchers
+		for j := range pair.RequestMatcher.Body {
+			bodyMatcher := &pair.RequestMatcher.Body[j]
+
+			if bodyValue, ok := bodyMatcher.Value.(string); ok {
+				if isBase64Encoded(bodyValue) {
+					decodedBody, err := decodeBody(bodyValue)
+					if err != nil {
+						p.logger.Warn("Failed to decode request body",
+							"pair", i,
+							"error", err)
+						continue
+					}
+
+					bodyMatcher.Value = decodedBody
+					p.logger.Debug("Decoded request body",
+						"pair", i,
+						"body_length", len(decodedBody))
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+// Helper function to decode body
+func decodeBody(encodedBody string) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(encodedBody)
+	if err != nil {
+		return "", fmt.Errorf("base64 decoding: %w", err)
+	}
+
+	// Try to decompress using gzip
+	reader, err := gzip.NewReader(bytes.NewReader(data))
+	if err != nil {
+		// If not gzipped, return the decoded data as is
+		return string(data), nil
+	}
+	defer reader.Close()
+
+	decompressed, err := io.ReadAll(reader)
+	if err != nil {
+		return "", fmt.Errorf("decompressing: %w", err)
+	}
+
+	return string(decompressed), nil
+}
+
+// Helper function to check if a string might be base64 encoded
+func isBase64Encoded(s string) bool {
+	// Check if it looks like base64 (multiple of 4 length, valid chars, etc.)
+	if len(s)%4 != 0 {
+		return false
+	}
+
+	// Try to decode - this is the most reliable check
+	_, err := base64.StdEncoding.DecodeString(s)
+	return err == nil
 }

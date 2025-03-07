@@ -3,8 +3,12 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/vmyroslav/api-test-demo/tools/postprocessor/processor"
 
@@ -66,9 +70,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Write processed simulation to temporary file first
-	tmpFile := inputFile + ".tmp"
-
 	// Format with indentation for readability
 	processedData, err := json.MarshalIndent(simulation, "", "  ")
 	if err != nil {
@@ -76,18 +77,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = os.WriteFile(tmpFile, processedData, 0o644); err != nil {
+	// Determine output filename based on override setting
+	outputFile := inputFile
+	if !cfg.Settings.Override {
+		// Generate a new output filename with timestamp
+		ext := filepath.Ext(inputFile)
+		baseName := strings.TrimSuffix(inputFile, ext)
+		timestamp := time.Now().Format("20060102_150405")
+		outputFile = fmt.Sprintf("%s_processed_%s%s", baseName, timestamp, ext)
+	}
+
+	if err = os.WriteFile(outputFile, processedData, 0o644); err != nil {
 		logger.Error("Error writing processed simulation", "error", err)
 		os.Exit(1)
 	}
 
-	// Replace original file with processed one
-	if err = os.Rename(tmpFile, inputFile); err != nil {
-		logger.Error("Error replacing original file", "error", err)
-		os.Exit(1)
-	}
-
-	logger.Info("Simulation processed successfully", "output", inputFile)
+	logger.Info("Simulation processed successfully", "output", outputFile)
 }
 
 func setupLogger(isDebug bool) *slog.Logger {

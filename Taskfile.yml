@@ -264,9 +264,9 @@ tasks:
       Please run 'task hoverfly:export' after running your workflow to save the simulation.
       Or export the simulation manually by running 'task hoverfly:export SIMULATION_FILE=<filename>'
     cmds:
-      - task: bootstrap
+      - task: internal:bootstrap
         vars:
-            CLI_ARGS: hoverfly
+          CLI_ARGS: hoverfly
       - task: hoverfly:mode
         vars:
           MODE: capture

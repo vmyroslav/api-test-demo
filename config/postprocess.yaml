@@ -1,7 +1,9 @@
 version: "1.0"
 settings:
   case_sensitive: false
-  debug: false
+  debug: true
+  decode_body: true
+  override: false
 
 patterns:
   # All UUIDs will be replaced with the default regex pattern

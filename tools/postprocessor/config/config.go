@@ -19,6 +19,8 @@ type Config struct {
 type Settings struct {
 	CaseSensitive bool `yaml:"case_sensitive"`
 	Debug         bool `yaml:"debug"`
+	DecodeBody    bool `yaml:"decode_body"`
+	Override      bool `yaml:"override"`
 }
 
 func LoadConfig(filename string) (*Config, error) {
